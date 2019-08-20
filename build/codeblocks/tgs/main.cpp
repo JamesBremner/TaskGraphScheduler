@@ -12,6 +12,12 @@ class cVertex
 {
 public:
     int myCost;
+    bool myfDone;
+    cVertex()
+        : myfDone( false )
+    {
+
+    }
 };
 class cEdge
 {
@@ -37,6 +43,8 @@ public:
 
     std::string Display();
 
+    int FindNextTask();
+
 };
 
 std::string cTaskGraph::Display()
@@ -53,6 +61,31 @@ std::string cTaskGraph::Display()
     }
     return ss.str();
 }
+
+int cTaskGraph::FindNextTask()
+{
+    for (auto vd : boost::make_iterator_range(vertices(g)))
+    {
+        if( g[vd].myfDone )
+            continue;
+        bool fReady = true;
+        for (auto ed : boost::make_iterator_range(edges(g)))
+        {
+            if( target( ed, g ) == vd )
+            {
+                if( ! g[source( ed, g )].myfDone )
+                {
+                    fReady = false;
+                    break;
+                }
+            }
+        }
+        if( fReady )
+            return vd;
+    }
+    return -1;
+}
+
 
 int main( int argc, char* argv[] )
 {
@@ -100,6 +133,15 @@ int main( int argc, char* argv[] )
     }
 
     TaskGraph.Display();
+
+    while( true )
+    {
+        int t = TaskGraph.FindNextTask();
+        if( t == -1 )
+            break;
+        cout << "Task T" << TaskGraph.FindNextTask() << "\n";
+        g[t].myfDone = true;
+    }
 
     return 0;
 }
