@@ -39,41 +39,26 @@ all tasks complete at 180
 
 ```
 
-for two processor cores
+for two processor cores, optimizing with a random search
 
 ```
 tgs ..\data\IzadkhahFig1.dat
 
-Processor with 2 cores
-Task T0 started at 0 on core 0
-Task T1 started at 0 on core 1
-Task T0 completed at 5
-Task T2 started at 5 on core 0
-Task T1 completed at 10
-Task T3 started at 10 on core 1
-Task T2 completed at 25
-Task T4 started at 25 on core 0
-Task T3 completed at 30
-Task T5 started at 30 on core 1
-Task T5 completed at 40
-Task T6 started at 40 on core 1
-Task T6 completed at 45
-Task T10 started at 45 on core 1
-Task T4 completed at 55
-Task T7 started at 55 on core 0
-Task T10 completed at 55
-Task T9 started at 55 on core 1
-Task T9 completed at 65
-Task T7 completed at 70
-Task T8 started at 70 on core 0
-Task T8 completed at 80
-Task T11 started at 80 on core 0
-Task T11 completed at 95
-Task T12 started at 95 on core 0
-Task T12 completed at 115
-all tasks complete at 115
-0:  0 0 0 0 0 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 8 8 8 8 8 8 8 8 8 81111111111111111111111111111111212121212121212121212121212121212121212
-1:  1 1 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 5 5 5 5 5 5 5 5 5 5 6 6 6 6 610101010101010101010 9 9 9 9 9 9 9 9 9 9
+Best 110
+
+Core 0:
+ 1 1 1 1 1 1 1 1 1 1 5 5 5 5 5 5 5 5 5 5 4 4
+ 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+ 4 4 4 4 4 4 9 9 9 9 9 9 9 9 9 9101010101010
+10101010..........11111111111111111111111111
+11111212121212121212121212121212121212121212
+
+
+Core 1:
+ 0 0 0 0 0 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
+ 3 6 6 6 6 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 8
+ 8 8 8 8 8 8 8 8 8
 ```
 
-Note that this is a better schedule than in figure 2 of the paper.  The cores are never idle and the task graph is completed in 115 time units, rather than 140.
+Note that this is a better schedule than in figure 2 of the paper.  The task graph is completed in 110 time units, rather than 140.
