@@ -211,17 +211,15 @@ void cTaskGraph::Load( const std::string& path )
 
 void cCore::Start( int task, int time )
 {
-    cout << "Start "<< task <<" "<<time<<"\n";
+    //cout << "Start "<< task <<" "<<time<<"\n";
     myFree = false;
     myMapBusy.insert( make_pair( time+0.1f, task));
 }
 void cCore::Done( int time )
 {
-    cout << "Done "<<time<<"\n";
+    //cout << "Done "<<time<<"\n";
     myFree = true;
     auto ret = myMapBusy.insert( make_pair( (float)time, -1) );
-    if( ! ret.second )
-        myMapBusy.insert( make_pair( time+0.1f, -1) );
 }
 void cCore::Display()
 {

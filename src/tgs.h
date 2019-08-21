@@ -111,7 +111,7 @@ public:
     int myCoreCount;
     cTaskGraph& myTaskGraph;
     int myTime;
-    std::map< int, int > myMapCompletions;
+    std::multimap< int, int > myMapCompletions;
     std::vector< cCore > myCore;
 
     /** CTOR
