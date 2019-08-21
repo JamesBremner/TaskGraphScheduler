@@ -15,9 +15,10 @@ public:
     bool myfDone;
     int myStart;
     int myComplete;
-    int myCore;
+    int myCore;         ///< core it runs on
     cTask()
         : myfDone( false )
+        , myCore( -1 )
     {
 
     }
@@ -27,6 +28,11 @@ public:
         myStart = time;
         myComplete = myStart + myCost;
         return myComplete;
+    }
+    void Restart()
+    {
+        myfDone = false;
+        myCore  = -1;
     }
 };
 class cEdge
@@ -51,14 +57,29 @@ public:
 
     graph_t g;
 
+    /// Clear all task done flags
+    void Restart();
+
     std::string Display();
 
     int FindNextTask();
 
-    void Done( int task )
+    /** Task has completed
+        @param[in] task
+        @return core which is now myFree
+    */
+    int Done( int task )
     {
         g[task].myfDone = true;
+        return g[task].myCore;
     }
+
+    /** Start a task
+        @param[in] task
+        @param[in] core running task
+        @param[in] time task starts
+        @return time task will complete
+    */
     int Start( int task, int core, int time )
     {
         return g[task].Start( time, core );
@@ -72,6 +93,7 @@ public:
     cTaskGraph& myTaskGraph;
     int myTime;
     map< int, int > myMapCompletions;
+    vector< bool > myFree;              ///< true if core is not running a task
 
     /** CTOR
         @param[in] cores number of cores that can run tasks in parrallel
@@ -83,36 +105,64 @@ public:
     {
         if( myCoreCount < 1 )
             throw std::runtime_error("Bad core count");
-        if( myCoreCount > 1 )
-            throw std::runtime_error("Multiple cores not implemented");
+        myFree.resize( myCoreCount, true );
     }
 
     void Schedule();
+
+private:
+    int FindFreeCore();
 };
 
+int cProcessor::FindFreeCore()
+{
+    auto ret = find( myFree.begin(), myFree.end(), true );
+    if( ret == myFree.end() )
+        return -1;
+    int core = ret - myFree.begin();
+    return core;
+}
 void cProcessor::Schedule()
 {
     myTime = 0;
+    myTaskGraph.Restart();
     while( true )
     {
         int task = myTaskGraph.FindNextTask();
         if( task == -1 )
+        {
+            cout << "all tasks complete at " << myTime << "\n";
             break;
-        cout << "Task T" << task << " started at " << myTime <<"\n";
+        }
+        int core = FindFreeCore();
+        if( core == -1 )
+            continue;
+
+        cout << "Task T" << task << " started at " << myTime <<" on core " << core << "\n";
         myMapCompletions.insert(
             make_pair(
-                myTaskGraph.Start( task, 1, myTime ),
+                myTaskGraph.Start( task, core, myTime ),
                 task ));
+        myFree[core] = false;
+
+        if( FindFreeCore() != -1 )
+            continue;
 
         auto ret = myMapCompletions.lower_bound ( myTime );
         int completed = ret->second;
         myTime = ret->first;
         cout << "Task T" << completed << " completed at " << myTime <<"\n";
-        myTaskGraph.Done( completed );
+        core = myTaskGraph.Done( completed );
+        myFree[ core ] = true;
         myMapCompletions.erase( ret );
     }
 }
 
+void cTaskGraph::Restart()
+{
+ for (auto vd : boost::make_iterator_range(vertices(g)))
+        g[vd].Restart();
+}
 std::string cTaskGraph::Display()
 {
     stringstream ss;
@@ -132,7 +182,7 @@ int cTaskGraph::FindNextTask()
 {
     for (auto vd : boost::make_iterator_range(vertices(g)))
     {
-        if( g[vd].myfDone )
+        if( g[vd].myCore != -1 )
             continue;
         bool fReady = true;
         for (auto ed : boost::make_iterator_range(edges(g)))
@@ -203,6 +253,10 @@ int main( int argc, char* argv[] )
     cProcessor Processor( 1, TaskGraph );
 
     Processor.Schedule();
+
+    cProcessor Processor2( 2, TaskGraph );
+
+    Processor2.Schedule();
 
     return 0;
 }
