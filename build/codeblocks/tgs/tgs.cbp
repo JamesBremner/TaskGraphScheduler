@@ -36,6 +36,11 @@
 			<Add directory="../../../src" />
 			<Add directory="$(#boost.include)" />
 		</Compiler>
+				<Linker>
+					<Add option="-static-libstdc++" />
+					<Add option="-static-libgcc" />
+			<Add option="-static" />
+			</Linker>
 		<Unit filename="../../../src/TaskGraphScheduler.cpp" />
 		<Unit filename="../../../src/tgs.cpp" />
 		<Unit filename="../../../src/tgs.h" />

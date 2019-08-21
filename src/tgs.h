@@ -60,6 +60,9 @@ public:
     */
     int FindNextTask();
 
+    std::vector<int>
+    FindReadyTasks();
+
     /** Task has completed
         @param[in] task
         @return core which is now myFree
@@ -80,6 +83,11 @@ public:
     {
         return g[task].Start( time, core );
     }
+
+    bool IsDone();
+
+private:
+
 };
 
 class cCore
@@ -118,20 +126,19 @@ public:
         @param[in] cores number of cores that can run tasks in parrallel
         @param[in] taskGraph
     */
-    cProcessor( int cores, cTaskGraph& taskGraph )
-        : myCoreCount( cores )
-        , myTaskGraph( taskGraph )
-    {
-        if( myCoreCount < 1 )
-            throw std::runtime_error("Bad core count");
-        myCore.resize( myCoreCount );
-        std::cout << "\nProcessor with " << myCoreCount << " cores\n";
-    }
+    cProcessor( int cores, cTaskGraph& taskGraph );
 
     /// Run the tasks
     void Run();
+    int RunRandom();
 
-    void DisplayCoreTimeLines();
+    void DisplayCoreTimeLines( std::vector<cCore>& TL);
+
+    std::vector< cCore >
+    TimeLines()
+    {
+        return myCore;
+    }
 
 private:
     int FindFreeCore();
