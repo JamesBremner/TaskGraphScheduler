@@ -95,7 +95,7 @@ class cCore
 public:
 
     cCore()
-    : myFree( true )
+        : myFree( true )
     {
 
     }
@@ -116,11 +116,6 @@ private:
 class cProcessor
 {
 public:
-    int myCoreCount;
-    cTaskGraph& myTaskGraph;
-    int myTime;
-    std::multimap< int, int > myMapCompletions;
-    std::vector< cCore > myCore;
 
     /** CTOR
         @param[in] cores number of cores that can run tasks in parrallel
@@ -129,8 +124,9 @@ public:
     cProcessor( int cores, cTaskGraph& taskGraph );
 
     /// Run the tasks
-    void Run();
-    int RunRandom();
+    int Run();
+
+    void Optimize();
 
     void DisplayCoreTimeLines( std::vector<cCore>& TL);
 
@@ -141,6 +137,11 @@ public:
     }
 
 private:
+    cTaskGraph& myTaskGraph;            ///< tasks to be run
+    int myTime;                         ///< current time
+    std::multimap< int, int > myMapCompletions;     ///< upcoming task completions, time mapped to task
+    std::vector< cCore > myCore;        ///< cores used to run tasks
+
     int FindFreeCore();
     void Start( int task, int core );
     bool WaitForNextTaskCompletion();

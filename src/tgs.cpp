@@ -14,13 +14,12 @@
 using namespace std;
 
 cProcessor::cProcessor( int cores, cTaskGraph& taskGraph )
-    : myCoreCount( cores )
-    , myTaskGraph( taskGraph )
+    : myTaskGraph( taskGraph )
 {
-    if( myCoreCount < 1 )
+    if( cores < 1 )
         throw std::runtime_error("Bad core count");
-    myCore.resize( myCoreCount );
-    std::cout << "\nProcessor with " << myCoreCount << " cores\n";
+    myCore.resize( cores );
+    std::cout << "\nProcessor with " << cores << " cores\n";
     /* initialize random seed: */
     srand (time(NULL));
 }
@@ -38,42 +37,26 @@ int cProcessor::FindFreeCore()
     }
     return -1;
 }
-void cProcessor::Run()
+
+void cProcessor::Optimize()
 {
-    myTime = 0;
-    myTaskGraph.Restart();
-    while( true )
+    int best = 1000000;
+    std::vector< cCore > bestTimeLines;
+    for( int k = 0; k< 50; k++ )
     {
-        // find next task that can be started
-        int task = myTaskGraph.FindNextTask();
-        if( task == -1 )
+        int t = Run();
+        if( t < best )
         {
-            cout << "all tasks complete at " << myTime << "\n";
-            break;
+            best = t;
+            bestTimeLines = TimeLines();
         }
-        if( task == -2 )
-        {
-            if( ! WaitForNextTaskCompletion() )
-                break;
-            continue;
-        }
-
-        // find a free core
-        int core = FindFreeCore();
-        if( core == -1 )
-            continue;
-
-        // start the task on the free core
-        Start( task, core );
-
-        //  if no free cores, wait for next task completion
-        if( FindFreeCore() == -1 )
-            if( ! WaitForNextTaskCompletion() )
-                break;
+        DisplayCoreTimeLines( myCore );
     }
+    std::cout << "\n========================\nBest Complete in " << best << "\n";
+    DisplayCoreTimeLines( bestTimeLines );
 }
 
-int cProcessor::RunRandom()
+int cProcessor::Run()
 {
 
     myTime = 0;
@@ -86,7 +69,7 @@ int cProcessor::RunRandom()
             cout << "all tasks complete at " << myTime << "\n";
             break;
         }
-        // find next task that can be started
+        // find tasks that can be started
         vector<int> ready = myTaskGraph.FindReadyTasks();
         if( ! ready.size() )
         {
@@ -94,6 +77,7 @@ int cProcessor::RunRandom()
                 break;
             continue;
         }
+        // choose one at random
         int task = ready[ rand() % ready.size() ];
 
         // find a free core
@@ -113,7 +97,7 @@ int cProcessor::RunRandom()
 }
 
 void cProcessor::DisplayCoreTimeLines(
-                                      vector<cCore>& TL )
+    vector<cCore>& TL )
 {
     int k = 0;
     for( auto& c : TL )

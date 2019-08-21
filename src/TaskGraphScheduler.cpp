@@ -18,19 +18,7 @@ int main( int argc, char* argv[] )
      // contruct double core processor to run taskgraph
     cProcessor Processor2( 2, TaskGraph );
 
-    int best = 1000000;
-    std::vector< cCore > bestTimeLines;
-    for( int k = 0; k< 50; k++ ) {
-        int t = Processor2.RunRandom();
-        if( t < best ) {
-            best = t;
-            bestTimeLines = Processor2.TimeLines();
-        }
-        //Processor2.DisplayCoreTimeLines( Processor2.TimeLines() );
-    }
-    std::cout << "Complete in " << best << "\n";
-    Processor2.DisplayCoreTimeLines( bestTimeLines );
-
+    Processor2.Optimize();
 
     return 0;
 }
