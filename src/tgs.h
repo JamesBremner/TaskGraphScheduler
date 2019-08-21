@@ -55,6 +55,9 @@ public:
 
     std::string Display();
 
+    /** Find a task that can start
+        @return -1 all tasks complete, -2 no task ready to start
+    */
     int FindNextTask();
 
     /** Task has completed
@@ -79,6 +82,28 @@ public:
     }
 };
 
+class cCore
+{
+public:
+
+    cCore()
+    : myFree( true )
+    {
+
+    }
+    bool IsFree() const
+    {
+        return myFree;
+    }
+    void Start( int task, int time );
+    void Done( int time );
+    void Display();
+
+private:
+    bool myFree;        ///< true if core is not running a task
+    std::map< float, int > myMapBusy;
+};
+
 /// A processor that can run tasks in a task graph on one or more cores in parrallel
 class cProcessor
 {
@@ -87,7 +112,7 @@ public:
     cTaskGraph& myTaskGraph;
     int myTime;
     std::map< int, int > myMapCompletions;
-    std::vector< bool > myFree;              ///< true if core is not running a task
+    std::vector< cCore > myCore;
 
     /** CTOR
         @param[in] cores number of cores that can run tasks in parrallel
@@ -99,15 +124,18 @@ public:
     {
         if( myCoreCount < 1 )
             throw std::runtime_error("Bad core count");
-        myFree.resize( myCoreCount, true );
+        myCore.resize( myCoreCount );
+        std::cout << "\nProcessor with " << myCoreCount << " cores\n";
     }
 
     /// Run the tasks
     void Run();
 
+    void DisplayCoreTimeLines();
+
 private:
     int FindFreeCore();
     void Start( int task, int core );
-    void WaitForNextTaskCompletion();
+    bool WaitForNextTaskCompletion();
 };
 

@@ -20,11 +20,15 @@ int main( int argc, char* argv[] )
     // run the tasks
     Processor.Run();
 
+    Processor.DisplayCoreTimeLines();
+
      // contruct double core processor to run taskgraph
     cProcessor Processor2( 2, TaskGraph );
 
     // run the tasks
     Processor2.Run();
+
+    Processor2.DisplayCoreTimeLines();
 
     return 0;
 }

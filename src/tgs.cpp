@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <iomanip>
 #include <vector>
 #include <map>
 #include <string>
@@ -13,11 +14,16 @@ using namespace std;
 
 int cProcessor::FindFreeCore()
 {
-    auto ret = find( myFree.begin(), myFree.end(), true );
-    if( ret == myFree.end() )
-        return -1;
-    int core = ret - myFree.begin();
-    return core;
+    int k = 0;
+    for( auto& c : myCore )
+    {
+        if( c.IsFree() )
+        {
+            return k;
+        }
+        k++;
+    }
+    return -1;
 }
 void cProcessor::Run()
 {
@@ -32,6 +38,12 @@ void cProcessor::Run()
             cout << "all tasks complete at " << myTime << "\n";
             break;
         }
+        if( task == -2 )
+        {
+            if( ! WaitForNextTaskCompletion() )
+                break;
+            continue;
+        }
 
         // find a free core
         int core = FindFreeCore();
@@ -43,14 +55,28 @@ void cProcessor::Run()
 
         //  if no free cores, wait for next task completion
         if( FindFreeCore() == -1 )
-            WaitForNextTaskCompletion();;
+            if( ! WaitForNextTaskCompletion() )
+                break;
     }
 }
 
-void cProcessor::WaitForNextTaskCompletion()
+void cProcessor::DisplayCoreTimeLines()
+{
+    int k = 0;
+    for( auto& c : myCore )
+    {
+        cout << k++ << ": ";
+        c.Display();
+        cout << "\n";
+    }
+}
+
+bool cProcessor::WaitForNextTaskCompletion()
 {
     // find next task to complete
     auto ret = myMapCompletions.lower_bound ( myTime );
+    if( ret == myMapCompletions.end() )
+        return false;
     int completed = ret->second;
 
     // move clock to completion time
@@ -62,10 +88,12 @@ void cProcessor::WaitForNextTaskCompletion()
     int core = myTaskGraph.Done( completed );
 
     // mark core as free
-    myFree[ core ] = true;
+    myCore[ core ].Done( myTime );
 
     // remove task from tasks waiting to be complete
     myMapCompletions.erase( ret );
+
+    return true;
 }
 
 void cProcessor::Start( int task, int core )
@@ -75,7 +103,7 @@ void cProcessor::Start( int task, int core )
         make_pair(
             myTaskGraph.Start( task, core, myTime ),
             task ));
-    myFree[core] = false;
+    myCore[core].Start( task, myTime );
 }
 
 void cTaskGraph::Restart()
@@ -100,8 +128,21 @@ std::string cTaskGraph::Display()
 
 int cTaskGraph::FindNextTask()
 {
+    bool fAllDone = true;
     for (auto vd : boost::make_iterator_range(vertices(g)))
     {
+        if( ! g[vd].myfDone )
+        {
+            fAllDone = false;
+            break;
+        }
+    }
+    if( fAllDone )
+        return -1;
+
+    for (auto vd : boost::make_iterator_range(vertices(g)))
+    {
+        //cout << "check ready " << vd << "\n";
         if( g[vd].myCore != -1 )
             continue;
         bool fReady = true;
@@ -116,10 +157,13 @@ int cTaskGraph::FindNextTask()
                 }
             }
         }
-        if( fReady )
+        if( fReady ) {
+            //cout << vd << " is ready\n";
             return vd;
+        }
     }
-    return -1;
+    //cout << "no task ready\n";
+    return -2;
 }
 
 void cTaskGraph::Load( const std::string& path )
@@ -163,6 +207,59 @@ void cTaskGraph::Load( const std::string& path )
         auto p = vmap.find( vd );
         g[vd].myCost = p->second;
     }
-
 }
 
+void cCore::Start( int task, int time )
+{
+    cout << "Start "<< task <<" "<<time<<"\n";
+    myFree = false;
+    myMapBusy.insert( make_pair( time+0.1f, task));
+}
+void cCore::Done( int time )
+{
+    cout << "Done "<<time<<"\n";
+    myFree = true;
+    auto ret = myMapBusy.insert( make_pair( (float)time, -1) );
+    if( ! ret.second )
+        myMapBusy.insert( make_pair( time+0.1f, -1) );
+}
+void cCore::Display()
+{
+    int date = 0;
+    int prevtask = -1;
+    bool first = true;
+    for( auto b : myMapBusy )
+    {
+       // std::cout <<"\n"<<date <<" "<< b.first <<" "<<b.second<<"\n";
+
+        if( prevtask == -1 )
+            for( int t = date+1; t < b.first; t++ )
+                cout << "..";
+        else
+            for( int t = date; t < b.first; t++ )
+                cout << setw(2) << prevtask;
+        date = b.first;
+        prevtask = b.second;
+    }
+
+
+//        if( first )
+
+//        {
+//            first = false;
+//            for( int t = 0; t < b.first; t++ )
+//            {
+//                cout << "..";
+//            }
+//            date = b.first;
+//            continue;
+//        }
+//        string s = "..";
+//        if( b.second != -1 )
+//            s = to_string( b.second);
+//
+//        for( int t = date; t < b.first; t++ )
+//            cout << setw(2) << s;
+//        date = b.first;
+//    }
+}
