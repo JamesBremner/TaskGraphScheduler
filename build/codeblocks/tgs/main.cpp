@@ -8,15 +8,25 @@
 
 using namespace std;
 
-class cVertex
+class cTask
 {
 public:
     int myCost;
     bool myfDone;
-    cVertex()
+    int myStart;
+    int myComplete;
+    int myCore;
+    cTask()
         : myfDone( false )
     {
 
+    }
+    int Start( int time, int core )
+    {
+        myCore = core;
+        myStart = time;
+        myComplete = myStart + myCost;
+        return myComplete;
     }
 };
 class cEdge
@@ -36,7 +46,7 @@ public:
     boost::listS,
           boost::vecS,
           boost::directedS,
-          cVertex,
+          cTask,
           cEdge > graph_t;
 
     graph_t g;
@@ -45,7 +55,63 @@ public:
 
     int FindNextTask();
 
+    void Done( int task )
+    {
+        g[task].myfDone = true;
+    }
+    int Start( int task, int core, int time )
+    {
+        return g[task].Start( time, core );
+    }
 };
+
+class cProcessor
+{
+public:
+    int myCoreCount;
+    cTaskGraph& myTaskGraph;
+    int myTime;
+    map< int, int > myMapCompletions;
+
+    /** CTOR
+        @param[in] cores number of cores that can run tasks in parrallel
+        @param[in] taskGraph
+    */
+    cProcessor( int cores, cTaskGraph& taskGraph )
+        : myCoreCount( cores )
+        , myTaskGraph( taskGraph )
+    {
+        if( myCoreCount < 1 )
+            throw std::runtime_error("Bad core count");
+        if( myCoreCount > 1 )
+            throw std::runtime_error("Multiple cores not implemented");
+    }
+
+    void Schedule();
+};
+
+void cProcessor::Schedule()
+{
+    myTime = 0;
+    while( true )
+    {
+        int task = myTaskGraph.FindNextTask();
+        if( task == -1 )
+            break;
+        cout << "Task T" << task << " started at " << myTime <<"\n";
+        myMapCompletions.insert(
+            make_pair(
+                myTaskGraph.Start( task, 1, myTime ),
+                task ));
+
+        auto ret = myMapCompletions.lower_bound ( myTime );
+        int completed = ret->second;
+        myTime = ret->first;
+        cout << "Task T" << completed << " completed at " << myTime <<"\n";
+        myTaskGraph.Done( completed );
+        myMapCompletions.erase( ret );
+    }
+}
 
 std::string cTaskGraph::Display()
 {
@@ -134,14 +200,9 @@ int main( int argc, char* argv[] )
 
     TaskGraph.Display();
 
-    while( true )
-    {
-        int t = TaskGraph.FindNextTask();
-        if( t == -1 )
-            break;
-        cout << "Task T" << TaskGraph.FindNextTask() << "\n";
-        g[t].myfDone = true;
-    }
+    cProcessor Processor( 1, TaskGraph );
+
+    Processor.Schedule();
 
     return 0;
 }
