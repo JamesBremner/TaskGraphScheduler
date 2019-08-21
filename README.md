@@ -2,39 +2,65 @@
  
 Some windows desktop C++ code based on Izadkhah, H. Learning Based Genetic Algorithm for Task Graph Scheduling https://www.hindawi.com/journals/acisc/2019/6543957/
 
-The application can determine a feasible order of tasks to be performed on a single processor.  Running on the task graph of figure 1 in the Izadkhah paper, the output is
+The application can determine a feasible order of tasks to be performed on multiple processor cores.  Running on the task graph of figure 1 in the Izadkhah paper, the output is for a single processor core
 
 ```
 tgs ..\data\IzadkhahFig1.dat
-T0( 5 ) -> T2( 20 ) costs 3
-T0( 5 ) -> T3( 20 ) costs 8
-T1( 10 ) -> T3( 20 ) costs 3
-T1( 10 ) -> T4( 30 ) costs 10
-T1( 10 ) -> T5( 10 ) costs 5
-T2( 20 ) -> T6( 5 ) costs 3
-T2( 20 ) -> T7( 15 ) costs 8
-T3( 20 ) -> T7( 15 ) costs 10
-T4( 30 ) -> T7( 15 ) costs 1
-T4( 30 ) -> T9( 10 ) costs 10
-T5( 10 ) -> T7( 15 ) costs 8
-T5( 10 ) -> T9( 10 ) costs 6
-T6( 5 ) -> T8( 10 ) costs 5
-T7( 15 ) -> T8( 10 ) costs 2
-T8( 10 ) -> T11( 15 ) costs 5
-T10( 10 ) -> T11( 15 ) costs 8
-T10( 10 ) -> T12( 20 ) costs 10
-T11( 15 ) -> T12( 20 ) costs 15
-Task T0
-Task T1
-Task T2
-Task T3
-Task T4
-Task T5
-Task T6
-Task T7
-Task T8
-Task T9
-Task T10
-Task T11
-Task T12
+
+Task T0 started at 0 on core 0
+Task T0 completed at 5
+Task T1 started at 5 on core 0
+Task T1 completed at 15
+Task T2 started at 15 on core 0
+Task T2 completed at 35
+Task T3 started at 35 on core 0
+Task T3 completed at 55
+Task T4 started at 55 on core 0
+Task T4 completed at 85
+Task T5 started at 85 on core 0
+Task T5 completed at 95
+Task T6 started at 95 on core 0
+Task T6 completed at 100
+Task T7 started at 100 on core 0
+Task T7 completed at 115
+Task T8 started at 115 on core 0
+Task T8 completed at 125
+Task T9 started at 125 on core 0
+Task T9 completed at 135
+Task T10 started at 135 on core 0
+Task T10 completed at 145
+Task T11 started at 145 on core 0
+Task T11 completed at 160
+Task T12 started at 160 on core 0
+Task T12 completed at 180
+all tasks complete at 180
+```
+
+for two processor cores
+
+```
+tgs ..\data\IzadkhahFig1.dat
+
+Task T0 started at 0 on core 0
+Task T1 started at 0 on core 1
+Task T0 completed at 5
+Task T2 started at 5 on core 0
+Task T1 completed at 10
+Task T3 started at 10 on core 1
+Task T2 completed at 25
+Task T4 started at 25 on core 0
+Task T3 completed at 30
+Task T5 started at 30 on core 1
+Task T5 completed at 40
+Task T6 started at 40 on core 1
+Task T6 completed at 45
+Task T10 started at 45 on core 1
+Task T4 completed at 55
+Task T7 started at 55 on core 0
+Task T7 completed at 70
+Task T8 started at 70 on core 0
+Task T8 completed at 80
+Task T9 started at 80 on core 0
+Task T9 completed at 90
+all tasks complete at 90
 ```
