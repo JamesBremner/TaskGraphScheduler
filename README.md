@@ -2,7 +2,7 @@
  
 The application searches for an optimal feasible order of tasks without communications costs to be performed on multiple homogeneous processor cores.  
 
-The task graphs reads files in standard task graph format as described hhttp://www.kasahara.cs.waseda.ac.jp/schedule/index.html
+The application reads files in standard task graph format as described http://www.kasahara.cs.waseda.ac.jp/schedule/index.html
 
 Sample run of 100 task sample #2 from 
 
