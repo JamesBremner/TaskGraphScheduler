@@ -8,6 +8,7 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 
+#include <boost/graph/dijkstra_shortest_paths.hpp>
 
 #include "tgs.h"
 
@@ -58,7 +59,7 @@ void cProcessor::Optimize()
                 bestTimeLines = TimeLines();
             }
             //DisplayCoreTimeLines( myCore );
-         }
+        }
     }
     std::cout << "\n========================\nBest Complete in " << best << "\n";
     DisplayCoreTimeLines( bestTimeLines );
@@ -100,24 +101,32 @@ int cProcessor::Run( int firstChoice )
             task = myTaskGraph.Choose( ready );
         }
 
-            // find a free core
-            int core = FindFreeCore();
-            if( core == -1 )
-                continue;
+        // find a free core
+        int core = FindFreeCore();
+        if( core == -1 )
+            continue;
 
-            // start the task on the free core
-            Start( task, core );
+        // start the task on the free core
+        Start( task, core );
 
-            //  if no free cores, wait for next task completion
-            if( FindFreeCore() == -1 )
-                if( ! WaitForNextTaskCompletion() )
-                    break;
+        //  if no free cores, wait for next task completion
+        if( FindFreeCore() == -1 )
+            if( ! WaitForNextTaskCompletion() )
+                break;
     }
     return myTime;
 }
 
 int cTaskGraph::Choose( std::vector<int> ready )
 {
+    // always choose task on criticasl path, if ready
+    for( auto r : ready )
+    {
+        if( find( myCritialPath.begin(), myCritialPath.end(), r ) != myCritialPath.end() )
+            return r;
+    }
+
+    // choose one at random
     return ready[ rand() % ready.size() ];
 
 //    int best = ready[0];
@@ -272,11 +281,54 @@ cTaskGraph::FindReadyTasks()
     return Ready;
 }
 
+void cTaskGraph::CriticalPath()
+{
+    graph_t gd = g;
+    int start_dummy = num_vertices( gd );
+    int end_dummy   = start_dummy + 1;
+    for( auto vd : boost::make_iterator_range(vertices(gd)))
+    {
+        bool fconnect_to_start_dummy = true;
+        bool fconnect_to_end_dummy = true;
+        for (auto ed : boost::make_iterator_range(edges(gd)))
+        {
+            if( target( ed, g ) == vd )
+                fconnect_to_start_dummy = false;
+            if( source( ed, g ) == vd )
+                fconnect_to_end_dummy = false;
+        }
+        if( fconnect_to_start_dummy )
+            add_edge( start_dummy, vd, gd );
+        if( fconnect_to_end_dummy )
+            add_edge( vd, end_dummy , gd );
+    }
+    gd[start_dummy].myCost = 0;
+    gd[end_dummy].myCost = 0;
+
+    for (auto ed : boost::make_iterator_range(edges(gd)))
+        gd[ed].myCost = 1.0f / gd[target( ed, gd )].myCost;
+
+//    auto weights = boost::get(&cEdge::myCost, gd);
+//    std::vector<boost::graph_traits < graph_t >::vertex_descriptor> p(num_vertices(gd));
+//    boost::dijkstra_shortest_paths(g, start_dummy,
+//                                    predecessor_map(boost::make_iterator_property_map(p.begin(), get(boost::vertex_index, gd))).
+//                                    weight_map(weights));
+//    int cv = end_dummy;
+//    while( true )
+//    {
+//        cv = p[cv];
+//        if( cv == start_dummy)
+//            break;
+//        myCritialPath.push_back( cv );
+//    }
+}
+
 void cTaskGraph::Load( const std::string& path )
 {
     if( path.substr( path.length()-4) == ".stg")
     {
         LoadSTG(path);
+        CriticalPath();
         return;
     }
 

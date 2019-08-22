@@ -34,7 +34,7 @@ public:
 class cEdge
 {
 public:
-    int myCost;
+    float myCost;
 };
 
 class cTaskGraph
@@ -105,7 +105,9 @@ public:
     int Choose( std::vector<int> ready );
 
 private:
+    std::vector<int> myCritialPath;
 
+    void CriticalPath();
 };
 
 class cCore
