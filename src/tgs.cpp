@@ -298,14 +298,14 @@ void cTaskGraph::LoadSTG( const std::string& path )
     {
         cout << "cannot open " <<  path << "\n";
     }
-    map<int,int> vmap;
+    map<int,int> map_task_to_cost;
     int taskcount;
     int task = -1;
     string line;
     while( getline( f, line ) )
     {
         if( line[0] == '#')
-            return;
+            break;
         if( task == -1 )
         {
             taskcount = atoi( line.c_str());
@@ -321,12 +321,12 @@ void cTaskGraph::LoadSTG( const std::string& path )
         if( task > taskcount )
         {
             // exit dummy node
-            return;
+            break;
         }
         int cost = atoi( line.substr(11).c_str() );
         int prevcount = atoi( line.substr(22).c_str() );
-        //cout << cost <<" "<< prevcount << "\n";
-        vmap.insert( std::make_pair(
+        //cout << task <<" "<< cost <<" "<< prevcount << "\n";
+        map_task_to_cost.insert( std::make_pair(
                          task,
                          cost ));
         vector<int> prev;
@@ -334,20 +334,28 @@ void cTaskGraph::LoadSTG( const std::string& path )
         {
             prev.push_back( atoi( line.substr(33+k*11).c_str() ) );
         }
-        if( (int)prev.size() == 1 && prev[0] == 0 ) {
+        if( (int)prev.size() == 1 && prev[0] == 0 )
+        {
             task++;
             continue;
         }
         for( auto p : prev )
         {
             //cout << p << " ";
-            add_edge(
-                p,
-                task,
-                g);
+            if( p )
+                add_edge(
+                    p,
+                    task,
+                    g);
         }
         cout << "\n";
         task++;
+    }
+
+    for (auto vd : boost::make_iterator_range(vertices(g)))
+    {
+        auto p = map_task_to_cost.find( vd );
+        g[vd].myCost = p->second;
     }
 }
 
