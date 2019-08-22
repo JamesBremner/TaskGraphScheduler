@@ -42,7 +42,7 @@ void cProcessor::Optimize()
 {
     int best = 1000000;
     std::vector< cCore > bestTimeLines;
-    for( int k = 0; k< 50; k++ )
+    for( int k = 0; k< 5; k++ )
     {
         int t = Run();
         if( t < best )
@@ -241,9 +241,18 @@ cTaskGraph::FindReadyTasks()
 
 void cTaskGraph::Load( const std::string& path )
 {
+    if( path.substr( path.length()-4) == ".stg")
+    {
+        LoadSTG(path);
+        return;
+    }
+
     ifstream f( path );
     if( ! f.is_open() )
+    {
         cout << "cannot open " <<  path << "\n";
+        exit(1);
+    }
 
     map<int,int> vmap;
 
@@ -279,6 +288,66 @@ void cTaskGraph::Load( const std::string& path )
     {
         auto p = vmap.find( vd );
         g[vd].myCost = p->second;
+    }
+}
+
+void cTaskGraph::LoadSTG( const std::string& path )
+{
+    ifstream f( path );
+    if( ! f.is_open() )
+    {
+        cout << "cannot open " <<  path << "\n";
+    }
+    map<int,int> vmap;
+    int taskcount;
+    int task = -1;
+    string line;
+    while( getline( f, line ) )
+    {
+        if( line[0] == '#')
+            return;
+        if( task == -1 )
+        {
+            taskcount = atoi( line.c_str());
+            task++;
+            continue;
+        }
+        if( task == 0 )
+        {
+            // entry dummy node
+            task++;
+            continue;
+        }
+        if( task > taskcount )
+        {
+            // exit dummy node
+            return;
+        }
+        int cost = atoi( line.substr(11).c_str() );
+        int prevcount = atoi( line.substr(22).c_str() );
+        //cout << cost <<" "<< prevcount << "\n";
+        vmap.insert( std::make_pair(
+                         task,
+                         cost ));
+        vector<int> prev;
+        for( int k = 0; k < prevcount; k++ )
+        {
+            prev.push_back( atoi( line.substr(33+k*11).c_str() ) );
+        }
+        if( (int)prev.size() == 1 && prev[0] == 0 ) {
+            task++;
+            continue;
+        }
+        for( auto p : prev )
+        {
+            //cout << p << " ";
+            add_edge(
+                p,
+                task,
+                g);
+        }
+        cout << "\n";
+        task++;
     }
 }
 

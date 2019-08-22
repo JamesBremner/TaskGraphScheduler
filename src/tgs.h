@@ -48,7 +48,18 @@ public:
 
     graph_t g;
 
+    /** Read task graph from file
+        @param[in] path to file
+        If files extension is .stg, use standard task graph format
+        http://www.kasahara.cs.waseda.ac.jp/schedule/format_e.html#nocomm
+    */
     void Load( const std::string& path );
+
+    /** Read task graph from standard task graph format file
+        @param[in] path to file
+        http://www.kasahara.cs.waseda.ac.jp/schedule/format_e.html#nocomm
+    */
+    void LoadSTG( const std::string& path );
 
     /// Clear all task done flags
     void Restart();
