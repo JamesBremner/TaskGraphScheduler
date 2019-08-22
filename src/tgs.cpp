@@ -40,23 +40,32 @@ int cProcessor::FindFreeCore()
 
 void cProcessor::Optimize()
 {
+    myTaskGraph.Restart();
+    vector<int> ReadyAtStart = myTaskGraph.FindReadyTasks();
+    cout << ReadyAtStart.size() << " tasks are ready to start initially\n";
     int best = 1000000;
     std::vector< cCore > bestTimeLines;
-    for( int k = 0; k< 5; k++ )
+
+    for( int firstChoice : ReadyAtStart )
     {
-        int t = Run();
-        if( t < best )
+        cout << "Searching schedules with first task " << firstChoice << "\n";
+        for( int k = 0; k< 100; k++ )
         {
-            best = t;
-            bestTimeLines = TimeLines();
+
+            int t = Run( firstChoice );
+            if( t < best )
+            {
+                best = t;
+                bestTimeLines = TimeLines();
+            }
+            //DisplayCoreTimeLines( myCore );
         }
-        DisplayCoreTimeLines( myCore );
     }
     std::cout << "\n========================\nBest Complete in " << best << "\n";
     DisplayCoreTimeLines( bestTimeLines );
 }
 
-int cProcessor::Run()
+int cProcessor::Run( int firstChoice )
 {
 
     myTime = 0;
@@ -64,40 +73,62 @@ int cProcessor::Run()
     myTaskGraph.Restart();
     while( true )
     {
-        if( myTaskGraph.IsDone() )
+        int task;
+        if( firstChoice )
         {
-            cout << "all tasks complete at " << myTime << "\n";
-            break;
+            task = firstChoice;
+            firstChoice = 0;
         }
-        // find tasks that can be started
-        vector<int> ready = myTaskGraph.FindReadyTasks();
-        if( ! ready.size() )
+        else
         {
-            if( ! WaitForNextTaskCompletion() )
+            if( myTaskGraph.IsDone() )
+            {
+                //cout << "all tasks complete at " << myTime << "\n";
                 break;
-            continue;
+            }
+            // find tasks that can be started
+            vector<int> ready = myTaskGraph.FindReadyTasks();
+            if( ! ready.size() )
+            {
+                if( ! WaitForNextTaskCompletion() )
+                    break;
+                continue;
+            }
+            // choose one
+            task = myTaskGraph.Choose( ready );
+
+            // find a free core
+            int core = FindFreeCore();
+            if( core == -1 )
+                continue;
+
+            // start the task on the free core
+            Start( task, core );
+
+            //  if no free cores, wait for next task completion
+            if( FindFreeCore() == -1 )
+                if( ! WaitForNextTaskCompletion() )
+                    break;
         }
-        // choose one at random
-        int task = ready[ rand() % ready.size() ];
-
-        // find a free core
-        int core = FindFreeCore();
-        if( core == -1 )
-            continue;
-
-        // start the task on the free core
-        Start( task, core );
-
-        //  if no free cores, wait for next task completion
-        if( FindFreeCore() == -1 )
-            if( ! WaitForNextTaskCompletion() )
-                break;
     }
     return myTime;
 }
 
+int cTaskGraph::Choose( std::vector<int> ready )
+{
+    return ready[ rand() % ready.size() ];
+
+//    int best = ready[0];
+//    for( auto t : ready )
+//    {
+//        if( g[t].myCost > g[best].myCost )
+//            best = t;
+//    }
+//    return best;
+}
+
 void cProcessor::DisplayCoreTimeLines(
-    vector<cCore>& TL )
+    std::vector<cCore>& TL )
 {
     int k = 0;
     for( auto& c : TL )
@@ -327,8 +358,8 @@ void cTaskGraph::LoadSTG( const std::string& path )
         int prevcount = atoi( line.substr(22).c_str() );
         //cout << task <<" "<< cost <<" "<< prevcount << "\n";
         map_task_to_cost.insert( std::make_pair(
-                         task,
-                         cost ));
+                                     task,
+                                     cost ));
         vector<int> prev;
         for( int k = 0; k < prevcount; k++ )
         {
@@ -348,7 +379,7 @@ void cTaskGraph::LoadSTG( const std::string& path )
                     task,
                     g);
         }
-        cout << "\n";
+        //cout << "\n";
         task++;
     }
 
@@ -383,7 +414,7 @@ void cCore::Display()
         if( prevtask == -1 )
             for( int t = date+1; t < b.first; t++ )
             {
-                cout << "..";
+                cout << "...";
                 if( k++ > 20 )
                 {
                     cout << "\n";
@@ -393,7 +424,7 @@ void cCore::Display()
         else
             for( int t = date; t < b.first; t++ )
             {
-                cout << setw(2) << prevtask;
+                cout << setw(3) << prevtask;
                 if( k++ > 20 )
                 {
                     cout << "\n";

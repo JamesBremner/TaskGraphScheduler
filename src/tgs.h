@@ -97,6 +97,8 @@ public:
 
     bool IsDone();
 
+    int Choose( std::vector<int> ready );
+
 private:
 
 };
@@ -135,7 +137,7 @@ public:
     cProcessor( int cores, cTaskGraph& taskGraph );
 
     /// Run the tasks
-    int Run();
+    int Run( int firstChoice );
 
     void Optimize();
 
@@ -156,5 +158,6 @@ private:
     int FindFreeCore();
     void Start( int task, int core );
     bool WaitForNextTaskCompletion();
+
 };
 

@@ -13,7 +13,7 @@ int main( int argc, char* argv[] )
     TaskGraph.Load( argv[1] );
 
     // display taskgraph loaded
-    TaskGraph.Display();
+    //TaskGraph.Display();
 
      // contruct double core processor to run taskgraph
     cProcessor Processor2( 2, TaskGraph );
