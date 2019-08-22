@@ -7,7 +7,8 @@ The task graphs reads files in standard task graph format as described hhttp://w
 Sample run of 100 task sample #2 from 
 
 ```
-C:\Users\James\code\TaskGraphScheduler\bin>tgs.exe ..\data\stg100\rand00
+C:\Users\James\code\TaskGraphScheduler\bin>tgs.exe ..\data\stg100\rand0002.stg
+
 
 Processor with 2 cores
 8 tasks are ready to start initially
