@@ -49,9 +49,8 @@ void cProcessor::Optimize()
     for( int firstChoice : ReadyAtStart )
     {
         cout << "Searching schedules with first task " << firstChoice << "\n";
-        for( int k = 0; k< 100; k++ )
+        for( int k = 0; k < 100; k++ )
         {
-
             int t = Run( firstChoice );
             if( t < best )
             {
@@ -59,7 +58,7 @@ void cProcessor::Optimize()
                 bestTimeLines = TimeLines();
             }
             //DisplayCoreTimeLines( myCore );
-        }
+         }
     }
     std::cout << "\n========================\nBest Complete in " << best << "\n";
     DisplayCoreTimeLines( bestTimeLines );
@@ -96,6 +95,7 @@ int cProcessor::Run( int firstChoice )
             }
             // choose one
             task = myTaskGraph.Choose( ready );
+        }
 
             // find a free core
             int core = FindFreeCore();
@@ -109,7 +109,6 @@ int cProcessor::Run( int firstChoice )
             if( FindFreeCore() == -1 )
                 if( ! WaitForNextTaskCompletion() )
                     break;
-        }
     }
     return myTime;
 }
@@ -247,7 +246,7 @@ cTaskGraph::FindReadyTasks()
     for (auto vd : boost::make_iterator_range(vertices(g)))
     {
         //cout << "check ready " << vd << "\n";
-        if( g[vd].myCore != -1 )
+        if( ! g[vd].IsWaiting() )
             continue;
         bool fReady = true;
         for (auto ed : boost::make_iterator_range(edges(g)))

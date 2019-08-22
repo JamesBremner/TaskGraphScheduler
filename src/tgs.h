@@ -25,6 +25,11 @@ public:
         myfDone = false;
         myCore  = -1;
     }
+    /// true if waiting to be assigned to a core
+    bool IsWaiting() const
+    {
+        return myCore == -1;
+    }
 };
 class cEdge
 {
