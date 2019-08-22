@@ -66,10 +66,13 @@ void cProcessor::Optimize()
 
 int cProcessor::Run( int firstChoice )
 {
-
+    //cout << "Run\n";
     myTime = 0;
 
     myTaskGraph.Restart();
+    for( auto& c : myCore )
+        c.Clear();
+
     while( true )
     {
         int task;
@@ -392,6 +395,11 @@ void cTaskGraph::LoadSTG( const std::string& path )
 void cCore::Start( int task, int time )
 {
     //cout << "Start "<< task <<" "<<time<<"\n";
+
+    for( auto p : myMapBusy )
+        if( p.second == task )
+            throw std::runtime_error("Duplicate task on core");
+
     myFree = false;
     myMapBusy.insert( make_pair( time+0.1f, task));
 }

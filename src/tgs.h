@@ -117,6 +117,11 @@ public:
     {
 
     }
+    void Clear()
+    {
+        myFree = true;
+        myMapBusy.clear();
+    }
     bool IsFree() const
     {
         return myFree;
