@@ -50,7 +50,7 @@ void cProcessor::Optimize()
     for( int firstChoice : ReadyAtStart )
     {
         cout << "Searching schedules with first task " << firstChoice << "\n";
-        for( int k = 0; k < 50; k++ )
+        for( int k = 0; k < 20; k++ )
         {
             int t = Run( firstChoice );
             if( t < best )
@@ -117,14 +117,23 @@ int cProcessor::Run( int firstChoice )
     return myTime;
 }
 
+bool cTaskGraph::IsOnCriticalPath( int task)
+{
+    return ( find(
+                 myCriticalPath.begin(),
+                 myCriticalPath.end(),
+                 task )
+             != myCriticalPath.end() );
+}
 int cTaskGraph::Choose( std::vector<int> ready )
 {
-   // cout << "choose ";
+    // cout << "choose ";
     // always choose task on critical path, if ready
     for( auto r : ready )
     {
         //cout << r << " ";
-        if( find( myCriticalPath.begin(), myCriticalPath.end(), r ) != myCriticalPath.end() ) {
+        if( IsOnCriticalPath( r ) )
+        {
             //cout << " chosen " << r << "\n";
             return r;
         }
@@ -335,13 +344,22 @@ void cTaskGraph::CriticalPath()
     */
     for (auto ed : boost::make_iterator_range(edges(gd)))
     {
-        int c = gd[target( ed, gd )].myCost;
+        // cost of running the task
+        int t = target( ed, gd );
+        int c;
+        if( gd[t].myfDone )
+            c = 0;              /// task is complete, so no more cost
+        else
+            c = gd[t].myCost;
+
+        // 100 times cost reciprocal
         int rc;
         if( ! c )
             rc = 0;
         else
             rc = 100 / c;
         gd[ed].myCost = rc;
+
 //        cout << target( ed, gd )
 //             <<" "<<gd[target( ed, gd )].myCost
 //             <<" "<<gd[ed].myCost << "\n";
@@ -355,7 +373,8 @@ void cTaskGraph::CriticalPath()
         gd, start_dummy,
         weights.predecessor_map(it));
 
-    cout << "\nCritical path: ";
+    //cout << "\nCritical path: ";
+    myCriticalPath.clear();
     int cv = end_dummy;
     while( true )
     {
@@ -364,11 +383,11 @@ void cTaskGraph::CriticalPath()
         if( cv == start_dummy)
             break;
 
-        cout << cv << " " ;
+        //cout << cv << " " ;
         myCriticalPath.push_back( cv );
 
     }
-    cout << "\n";
+    //cout << "\n";
 }
 
 void cTaskGraph::Load( const std::string& path )

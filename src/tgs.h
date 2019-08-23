@@ -79,11 +79,19 @@ public:
 
     /** Task has completed
         @param[in] task
-        @return core which is now myFree
+        @return core which is now free
     */
     int Done( int task )
     {
+        // mark task complete
         g[task].myfDone = true;
+
+        // if task was on critical path
+        // recaclulate path with zreo cort for completed tasks
+        if( IsOnCriticalPath( task ))
+            CriticalPath();
+
+        // return the core freed
         return g[task].myCore;
     }
 
@@ -119,6 +127,7 @@ private:
 
     /// Calculate critical path
     void CriticalPath();
+    bool IsOnCriticalPath( int task );
 };
 
 class cCore
