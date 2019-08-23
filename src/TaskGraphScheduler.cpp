@@ -10,13 +10,15 @@ int main( int argc, char* argv[] )
     cTaskGraph TaskGraph;
 
     // load taskgraph from file specified on command line
-    TaskGraph.Load( argv[1] );
+   // TaskGraph.Load( argv[1] );
 
     // display taskgraph loaded
     //TaskGraph.Display();
 
      // contruct double core processor to run taskgraph
     cProcessor Processor2( 2, TaskGraph );
+    Processor2.Options( argc, argv );
+    Processor2.Load();
 
     Processor2.Optimize();
 

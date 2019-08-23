@@ -50,7 +50,7 @@ void cProcessor::Optimize()
     for( int firstChoice : ReadyAtStart )
     {
         cout << "Searching schedules with first task " << firstChoice << "\n";
-        for( int k = 0; k < 20; k++ )
+        for( int k = 0; k < 50; k++ )
         {
             int t = Run( firstChoice );
             if( t < best )
@@ -288,6 +288,9 @@ cTaskGraph::FindReadyTasks()
 
 void cTaskGraph::CriticalPath()
 {
+    if( ! flagCritPath )
+        return;
+
 //    cout << "g vertices ";
 //    for( auto vd : boost::make_iterator_range(vertices(g)))
 //        cout << vd << " ";

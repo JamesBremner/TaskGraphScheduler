@@ -48,6 +48,9 @@ class cTaskGraph
 
 public:
 
+
+    bool flagCritPath;
+
     /** Read task graph from file
         @param[in] path to file
         If files extension is .stg, use standard task graph format
@@ -100,6 +103,8 @@ public:
     int Choose( std::vector<int> ready );
 
 private:
+
+
     /// graph with bundled properties
     typedef boost::adjacency_list
     <
@@ -154,6 +159,9 @@ public:
     */
     cProcessor( int cores, cTaskGraph& taskGraph );
 
+    void Options( int ac, char* av[] );
+    void Load();
+
     /// Run the tasks
     int Run( int firstChoice );
 
@@ -168,6 +176,9 @@ public:
     }
 
 private:
+    std::string stgPath;
+    bool flagNoCritPath;
+
     cTaskGraph& myTaskGraph;            ///< tasks to be run
     int myTime;                         ///< current time
     std::multimap< int, int > myMapCompletions;     ///< upcoming task completions, time mapped to task

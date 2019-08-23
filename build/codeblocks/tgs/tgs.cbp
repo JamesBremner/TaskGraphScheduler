@@ -12,7 +12,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc_v83" />
-				<Option parameters="..\data\test.dat" />
+				<Option parameters="..\data\50\rand0001.stg" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -36,12 +36,15 @@
 			<Add directory="../../../src" />
 			<Add directory="$(#boost.include)" />
 		</Compiler>
-				<Linker>
-					<Add option="-static-libstdc++" />
-					<Add option="-static-libgcc" />
+		<Linker>
+			<Add option="-static-libstdc++" />
+			<Add option="-static-libgcc" />
 			<Add option="-static" />
-			</Linker>
+			<Add library="boost_program_options-mgw82-mt-x64-1_70" />
+			<Add directory="$(#boost.lib)" />
+		</Linker>
 		<Unit filename="../../../src/TaskGraphScheduler.cpp" />
+		<Unit filename="../../../src/cProcessor.cpp" />
 		<Unit filename="../../../src/tgs.cpp" />
 		<Unit filename="../../../src/tgs.h" />
 		<Extensions>
