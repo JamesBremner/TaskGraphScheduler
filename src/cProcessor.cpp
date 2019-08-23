@@ -47,3 +47,45 @@ void cProcessor::Load()
     myTaskGraph.Load( stgPath );
 }
 
+
+void cProcessor::Optimize()
+{
+    myTaskGraph.Restart();
+    vector<int> ReadyAtStart = myTaskGraph.FindReadyTasks();
+    cout << ReadyAtStart.size() << " tasks are ready to start initially\n";
+    int best = 1000000;
+    std::vector< cCore > bestTimeLines;
+
+    int lowest = myTaskGraph.LowestTime( myCore.size() );
+    cout << "Low bound on total completion time " << lowest << "\n";
+
+    for( int firstChoice : ReadyAtStart )
+    {
+        cout << "Searching schedules with first task " << firstChoice << "\n";
+        for( int k = 0; k < 20; k++ )
+        {
+            int t = Run( firstChoice );
+            if( t < best )
+            {
+                best = t;
+                bestTimeLines = TimeLines();
+                if( best <= lowest+myGoodEnough ) {
+                    // obtained good enough result, display and return
+                    DisplayBest( best, bestTimeLines );
+                    return;
+                }
+            }
+            //DisplayCoreTimeLines( myCore );
+        }
+    }
+    DisplayBest( best, bestTimeLines );
+}
+void cProcessor::DisplayBest(
+                             int best,
+                             std::vector< cCore >& bestTimeLines )
+{
+    std::cout << "\n========================\nBest Complete in " << best << "\n";
+    DisplayCoreTimeLines( bestTimeLines );
+}
+
+

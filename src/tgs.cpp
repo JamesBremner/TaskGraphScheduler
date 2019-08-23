@@ -16,6 +16,7 @@ using namespace std;
 
 cProcessor::cProcessor( int cores, cTaskGraph& taskGraph )
     : myTaskGraph( taskGraph )
+    , myGoodEnough( 1 )
 {
     if( cores < 1 )
         throw std::runtime_error("Bad core count");
@@ -37,32 +38,6 @@ int cProcessor::FindFreeCore()
         k++;
     }
     return -1;
-}
-
-void cProcessor::Optimize()
-{
-    myTaskGraph.Restart();
-    vector<int> ReadyAtStart = myTaskGraph.FindReadyTasks();
-    cout << ReadyAtStart.size() << " tasks are ready to start initially\n";
-    int best = 1000000;
-    std::vector< cCore > bestTimeLines;
-
-    for( int firstChoice : ReadyAtStart )
-    {
-        cout << "Searching schedules with first task " << firstChoice << "\n";
-        for( int k = 0; k < 20; k++ )
-        {
-            int t = Run( firstChoice );
-            if( t < best )
-            {
-                best = t;
-                bestTimeLines = TimeLines();
-            }
-            //DisplayCoreTimeLines( myCore );
-        }
-    }
-    std::cout << "\n========================\nBest Complete in " << best << "\n";
-    DisplayCoreTimeLines( bestTimeLines );
 }
 
 int cProcessor::Run( int firstChoice )
@@ -203,6 +178,14 @@ void cTaskGraph::Restart()
 {
     for (auto vd : boost::make_iterator_range(vertices(g)))
         g[vd].Restart();
+}
+
+int cTaskGraph::LowestTime( int coreCount )
+{
+    int totaltime = 0;
+    for (auto vd : boost::make_iterator_range(vertices(g)))
+        totaltime += g[vd].myCost;
+    return ceil( totaltime / coreCount );
 }
 std::string cTaskGraph::Display()
 {

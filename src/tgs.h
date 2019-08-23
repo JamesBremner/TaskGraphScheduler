@@ -37,7 +37,7 @@ class cEdge
 public:
     int myCost;
     cEdge()
-    : myCost( 0 )
+        : myCost( 0 )
     {
 
     }
@@ -63,6 +63,8 @@ public:
         http://www.kasahara.cs.waseda.ac.jp/schedule/format_e.html#nocomm
     */
     void LoadSTG( const std::string& path );
+
+    int LowestTime( int coreCount );
 
     /// Clear all task done flags
     void Restart();
@@ -187,6 +189,7 @@ public:
 private:
     std::string stgPath;
     bool flagNoCritPath;
+    int myGoodEnough;       /// Distance from lowest bound accepted as good enough
 
     cTaskGraph& myTaskGraph;            ///< tasks to be run
     int myTime;                         ///< current time
@@ -196,6 +199,9 @@ private:
     int FindFreeCore();
     void Start( int task, int core );
     bool WaitForNextTaskCompletion();
+    void DisplayBest(
+        int best,
+        std::vector< cCore >& bestTimeLines );
 
 };
 
