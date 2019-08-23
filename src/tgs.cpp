@@ -50,7 +50,7 @@ void cProcessor::Optimize()
     for( int firstChoice : ReadyAtStart )
     {
         cout << "Searching schedules with first task " << firstChoice << "\n";
-        for( int k = 0; k < 100; k++ )
+        for( int k = 0; k < 20; k++ )
         {
             int t = Run( firstChoice );
             if( t < best )
@@ -119,12 +119,17 @@ int cProcessor::Run( int firstChoice )
 
 int cTaskGraph::Choose( std::vector<int> ready )
 {
-    // always choose task on criticasl path, if ready
+   // cout << "choose ";
+    // always choose task on critical path, if ready
     for( auto r : ready )
     {
-        if( find( myCritialPath.begin(), myCritialPath.end(), r ) != myCritialPath.end() )
+        //cout << r << " ";
+        if( find( myCriticalPath.begin(), myCriticalPath.end(), r ) != myCriticalPath.end() ) {
+            //cout << " chosen " << r << "\n";
             return r;
+        }
     }
+    //cout << " no critical\n";
 
     // choose one at random
     return ready[ rand() % ready.size() ];
@@ -283,14 +288,25 @@ cTaskGraph::FindReadyTasks()
 
 void cTaskGraph::CriticalPath()
 {
+//    cout << "g vertices ";
+//    for( auto vd : boost::make_iterator_range(vertices(g)))
+//        cout << vd << " ";
+//    cout << "\n";
+//    for (auto ed : boost::make_iterator_range(edges(g)))
+//    {
+//        cout << source(ed,g) <<" -> "<< target(ed,g) << "\n";
+//    }
+
     graph_t gd = g;
-    int start_dummy = num_vertices( gd );
-    int end_dummy   = start_dummy + 1;
-    for( auto vd : boost::make_iterator_range(vertices(gd)))
+    int start_dummy = 0;
+    int end_dummy   = num_vertices( gd );
+    for( auto vd : boost::make_iterator_range(vertices(g)))
     {
+        if( vd == 0 )
+            continue;
         bool fconnect_to_start_dummy = true;
         bool fconnect_to_end_dummy = true;
-        for (auto ed : boost::make_iterator_range(edges(gd)))
+        for (auto ed : boost::make_iterator_range(edges(g)))
         {
             if( target( ed, g ) == vd )
                 fconnect_to_start_dummy = false;
@@ -298,29 +314,58 @@ void cTaskGraph::CriticalPath()
                 fconnect_to_end_dummy = false;
         }
         if( fconnect_to_start_dummy )
+        {
+            //cout << vd << " to start\n";
             add_edge( start_dummy, vd, gd );
+        }
         if( fconnect_to_end_dummy )
-            add_edge( vd, end_dummy , gd );
+        {
+            //cout << vd << " to end\n";
+            add_edge( vd, end_dummy, gd );
+        }
     }
     gd[start_dummy].myCost = 0;
     gd[end_dummy].myCost = 0;
 
+    /** set edge costs to 100 / taskcost
+        so dijsktra will find the longest, critical path
+    */
     for (auto ed : boost::make_iterator_range(edges(gd)))
-        gd[ed].myCost = 1.0f / gd[target( ed, gd )].myCost;
+    {
+        int c = gd[target( ed, gd )].myCost;
+        int rc;
+        if( ! c )
+            rc = 0;
+        else
+            rc = 100 / c;
+        gd[ed].myCost = rc;
+//        cout << target( ed, gd )
+//             <<" "<<gd[target( ed, gd )].myCost
+//             <<" "<<gd[ed].myCost << "\n";
+    }
 
-//    auto weights = boost::get(&cEdge::myCost, gd);
-//    std::vector<boost::graph_traits < graph_t >::vertex_descriptor> p(num_vertices(gd));
-//    boost::dijkstra_shortest_paths(g, start_dummy,
-//                                    predecessor_map(boost::make_iterator_property_map(p.begin(), get(boost::vertex_index, gd))).
-//                                    weight_map(weights));
-//    int cv = end_dummy;
-//    while( true )
-//    {
-//        cv = p[cv];
-//        if( cv == start_dummy)
-//            break;
-//        myCritialPath.push_back( cv );
-//    }
+    auto weights = boost::weight_map(boost::get(&cEdge::myCost, gd));
+    vector<int> predecessors(boost::num_vertices(gd));
+    auto it = boost::make_iterator_property_map(predecessors.begin(), boost::get(boost::vertex_index,gd));
+
+    boost::dijkstra_shortest_paths(
+        gd, start_dummy,
+        weights.predecessor_map(it));
+
+    cout << "\nCritical path: ";
+    int cv = end_dummy;
+    while( true )
+    {
+        cv = predecessors[cv];
+
+        if( cv == start_dummy)
+            break;
+
+        cout << cv << " " ;
+        myCriticalPath.push_back( cv );
+
+    }
+    cout << "\n";
 }
 
 void cTaskGraph::Load( const std::string& path )
@@ -442,6 +487,7 @@ void cTaskGraph::LoadSTG( const std::string& path )
         auto p = map_task_to_cost.find( vd );
         g[vd].myCost = p->second;
     }
+    cout << "\n";
 }
 
 void cCore::Start( int task, int time )

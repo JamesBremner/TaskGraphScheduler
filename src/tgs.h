@@ -8,7 +8,8 @@ public:
     int myComplete;
     int myCore;         ///< core it runs on
     cTask()
-        : myfDone( false )
+        : myCost( 0 )
+        , myfDone( false )
         , myCore( -1 )
     {
 
@@ -34,24 +35,18 @@ public:
 class cEdge
 {
 public:
-    float myCost;
+    int myCost;
+    cEdge()
+    : myCost( 0 )
+    {
+
+    }
 };
 
 class cTaskGraph
 {
 
 public:
-
-/// graph with bundled properties
-    typedef boost::adjacency_list
-    <
-    boost::listS,
-          boost::vecS,
-          boost::directedS,
-          cTask,
-          cEdge > graph_t;
-
-    graph_t g;
 
     /** Read task graph from file
         @param[in] path to file
@@ -105,8 +100,19 @@ public:
     int Choose( std::vector<int> ready );
 
 private:
-    std::vector<int> myCritialPath;
+    /// graph with bundled properties
+    typedef boost::adjacency_list
+    <
+    boost::listS,
+          boost::vecS,
+          boost::directedS,
+          cTask,
+          cEdge > graph_t;
 
+    graph_t g;
+    std::vector<int> myCriticalPath;    ///< tasks on critical path, reverse order
+
+    /// Calculate critical path
     void CriticalPath();
 };
 
