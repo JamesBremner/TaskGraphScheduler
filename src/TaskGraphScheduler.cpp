@@ -30,7 +30,5 @@ int main( int argc, char* argv[] )
             break;          // no more files to process
     }
 
-    raven::set::cRunWatch::Report();
-
     return 0;
 }

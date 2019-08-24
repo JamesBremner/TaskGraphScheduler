@@ -171,12 +171,27 @@ void cTaskGraph::Restart()
         g[vd].Restart();
 }
 
-int cTaskGraph::LowestTime( int coreCount )
+void cTaskGraph::LowestTime( int coreCount )
 {
     int totaltime = 0;
-    for (auto vd : boost::make_iterator_range(vertices(g)))
-        totaltime += g[vd].myCost;
-    return ceil( totaltime / coreCount );
+
+    // sum of all task times divided by number of processors
+    // this would be achieved if all cores were utilized 100%
+        for (auto vd : boost::make_iterator_range(vertices(g)))
+            totaltime += g[vd].myCost;
+        myLowestTime = ceil( totaltime / coreCount );
+
+    if( flagCritPath )
+    {
+        // sum times of tasks on critical path
+        totaltime = 0;
+        for( int v : myCriticalPath )
+        {
+            totaltime += g[(vd_t)v].myCost;
+        }
+        if( totaltime > myLowestTime)
+            myLowestTime = totaltime;
+    }
 }
 std::string cTaskGraph::Display()
 {
@@ -243,7 +258,7 @@ cTaskGraph::FindReadyTasks()
     vector<int> Ready;
     if( IsDone() )
         return Ready;
-    g[(boost::graph_traits<graph_t>::vertex_descriptor)0].myfDone = true;
+    g[(vd_t)0].myfDone = true;
     for (auto vd : boost::make_iterator_range(vertices(g)))
     {
         if( vd == 0 )
@@ -346,23 +361,27 @@ int cTaskGraph::Load( const std::string& path )
 {
     g.clear();
 
+    int ret;
     if( path.substr( path.length()-4) == ".stg")
     {
         LoadSTG(path);
-        CriticalPath();
-        if( flagCritPath )
-        {
-            cout << "\nCritical path: ";
-            for( auto cv : myCriticalPath )
-                cout << cv <<" ";
-            cout << "\n";
-        }
-        return 1;
+        ret = 1;
     }
 
-    if( LoadAll( path ) )
-        return 2;
-    return 0;
+    else if( LoadAll( path ) )
+        ret = 2;
+    else
+        ret = 0;
+
+    CriticalPath();
+    if( flagCritPath )
+    {
+        cout << "\nCritical path: ";
+        for( auto cv : myCriticalPath )
+            cout << cv <<" ";
+        cout << "\n";
+    }
+    return ret;
 }
 bool cTaskGraph::LoadAll( const std::string& path )
 {
@@ -373,7 +392,8 @@ bool cTaskGraph::LoadAll( const std::string& path )
         for (const auto & entry : std::filesystem::directory_iterator(path))
             vp.push_back( entry.path().string() );
     }
-    if( k < vp.size()) {
+    if( k < vp.size())
+    {
         LoadSTG( vp[ k++ ] );
         return true;
     }
@@ -385,7 +405,7 @@ void cTaskGraph::LoadSTG( const std::string& path )
     ifstream f( path );
     if( ! f.is_open() )
     {
-        cout << "cannot open " <<  path << "\n";
+        throw runtime_error("Cannot open " + path );
     }
     map<int,int> map_task_to_cost;
     int taskcount;

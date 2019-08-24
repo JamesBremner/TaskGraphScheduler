@@ -54,6 +54,7 @@ public:
 
     std::string myLoadedPath;
     bool flagCritPath;
+    int myLowestTime;
 
     /** Read task graph from file
         @param[in] path to file
@@ -75,7 +76,7 @@ public:
 
     bool LoadAll( const std::string& path );
 
-    int LowestTime( int coreCount );
+    void LowestTime( int coreCount );
 
     /// Clear all task done flags
     void Restart();
@@ -100,7 +101,7 @@ public:
         g[task].myfDone = true;
 
         // if task was on critical path
-        // recaclulate path with zreo cort for completed tasks
+        // recaclulate path with zreo cost for completed tasks
         if( IsOnCriticalPath( task ))
             CriticalPath();
 
@@ -134,6 +135,7 @@ private:
           boost::directedS,
           cTask,
           cEdge > graph_t;
+    typedef boost::graph_traits<graph_t>::vertex_descriptor vd_t;
 
     graph_t g;
     std::vector<int> myCriticalPath;    ///< tasks on critical path, reverse order
@@ -216,7 +218,6 @@ private:
     cWaseda myWaseda;
 
     cTaskGraph& myTaskGraph;            ///< tasks to be run
-    int myLowBound;                     ///< low bound on completion time
     int myTime;                         ///< current time
     int myBestTime;
     std::multimap< int, int > myMapCompletions;     ///< upcoming task completions, time mapped to task
