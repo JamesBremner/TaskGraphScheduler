@@ -7,6 +7,7 @@
 #include <string>
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
+#include <filesystem>
 
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 
@@ -14,17 +15,7 @@
 
 using namespace std;
 
-cProcessor::cProcessor( int cores, cTaskGraph& taskGraph )
-    : myTaskGraph( taskGraph )
-    , myGoodEnough( 1 )
-{
-    if( cores < 1 )
-        throw std::runtime_error("Bad core count");
-    myCore.resize( cores );
-    std::cout << "\nProcessor with " << cores << " cores\n";
-    /* initialize random seed: */
-    srand (time(NULL));
-}
+
 
 int cProcessor::FindFreeCore()
 {
@@ -351,8 +342,10 @@ void cTaskGraph::CriticalPath()
     //cout << "\n";
 }
 
-void cTaskGraph::Load( const std::string& path )
+int cTaskGraph::Load( const std::string& path )
 {
+    g.clear();
+
     if( path.substr( path.length()-4) == ".stg")
     {
         LoadSTG(path);
@@ -364,51 +357,27 @@ void cTaskGraph::Load( const std::string& path )
                 cout << cv <<" ";
             cout << "\n";
         }
-        return;
+        return 1;
     }
 
-    ifstream f( path );
-    if( ! f.is_open() )
+    if( LoadAll( path ) )
+        return 2;
+    return 0;
+}
+bool cTaskGraph::LoadAll( const std::string& path )
+{
+    static vector< string > vp;
+    static int k = 0;
+    if( !vp.size() )
     {
-        cout << "cannot open " <<  path << "\n";
-        exit(1);
+        for (const auto & entry : std::filesystem::directory_iterator(path))
+            vp.push_back( entry.path().string() );
     }
-
-    map<int,int> vmap;
-
-    string line;
-    while( getline( f, line ) )
-    {
-        std::stringstream sst(line);
-        std::string a;
-        vector<string> output;
-        while( getline( sst, a, ',' ) )
-            output.push_back(a);
-        if( ! output.size() )
-            continue;
-//        for( auto& s : output )
-//            cout << s << "\t";
-//        cout << "\n";
-
-        if( (int) output.size() == 2 )
-            vmap.insert( std::make_pair(
-                             atoi(output[0].substr(1).c_str()),
-                             atoi(output[1].c_str()) ));
-        if( (int) output.size() == 3 )
-        {
-            auto e = add_edge(
-                         atoi(output[0].substr(1).c_str()),
-                         atoi(output[1].substr(2).c_str()),
-                         g);
-            g[e.first].myCost =  atoi(output[2].c_str());
-        }
+    if( k < vp.size()) {
+        LoadSTG( vp[ k++ ] );
+        return true;
     }
-
-    for (auto vd : boost::make_iterator_range(vertices(g)))
-    {
-        auto p = vmap.find( vd );
-        g[vd].myCost = p->second;
-    }
+    return false;
 }
 
 void cTaskGraph::LoadSTG( const std::string& path )
@@ -459,7 +428,8 @@ void cTaskGraph::LoadSTG( const std::string& path )
         task++;
     }
 
-
+    cout << path << " Loaded\n";
+    myLoadedPath = path;
 //    for (auto ed : boost::make_iterator_range(edges(g)))
 //        cout <<source(ed,g)
 //             <<"->"<< target( ed, g )

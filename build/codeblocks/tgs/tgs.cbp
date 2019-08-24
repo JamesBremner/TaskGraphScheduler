@@ -33,6 +33,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
+			<Add option="-std=c++17" />
 			<Add directory="../../../src" />
 			<Add directory="$(#boost.include)" />
 		</Compiler>
@@ -41,6 +42,7 @@
 			<Add option="-static-libgcc" />
 			<Add option="-static" />
 			<Add library="boost_program_options-mgw82-mt-x64-1_70" />
+			<Add library="stdc++fs" />
 			<Add directory="$(#boost.lib)" />
 		</Linker>
 		<Unit filename="../../../src/TaskGraphScheduler.cpp" />

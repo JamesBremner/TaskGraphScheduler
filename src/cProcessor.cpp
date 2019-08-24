@@ -1,9 +1,23 @@
 #include <iostream>
+#include <fstream>
 #include <boost/program_options.hpp>
 
 #include "tgs.h"
 
 using namespace std;
+
+cProcessor::cProcessor( int cores, cTaskGraph& taskGraph )
+    : myTaskGraph( taskGraph )
+    , myGoodEnough( 1 )
+    , myRecordPath( "record.txt" )
+{
+    if( cores < 1 )
+        throw std::runtime_error("Bad core count");
+    myCore.resize( cores );
+    std::cout << "\nProcessor with " << cores << " cores\n";
+    /* initialize random seed: */
+    srand (time(NULL));
+}
 
 void cProcessor::Options( int ac, char* av[] )
 {
@@ -41,10 +55,12 @@ void cProcessor::Options( int ac, char* av[] )
 //        flagCritPath = vm["path"].as< bool >();
 //    }
     myTaskGraph.flagCritPath = ! flagNoCritPath;
+
+    std::remove( myRecordPath.c_str() );
 }
-void cProcessor::Load()
+int cProcessor::Load()
 {
-    myTaskGraph.Load( stgPath );
+    return myTaskGraph.Load( stgPath );
 }
 
 
@@ -53,39 +69,47 @@ void cProcessor::Optimize()
     myTaskGraph.Restart();
     vector<int> ReadyAtStart = myTaskGraph.FindReadyTasks();
     cout << ReadyAtStart.size() << " tasks are ready to start initially\n";
-    int best = 1000000;
+    myBestTime = 10000000;
     std::vector< cCore > bestTimeLines;
 
-    int lowest = myTaskGraph.LowestTime( myCore.size() );
-    cout << "Low bound on total completion time " << lowest << "\n";
+    myLowBound = myTaskGraph.LowestTime( myCore.size() );
+    cout << "Low bound on total completion time " << myLowBound << "\n";
 
     for( int firstChoice : ReadyAtStart )
     {
         cout << "Searching schedules with first task " << firstChoice << "\n";
-        for( int k = 0; k < 20; k++ )
+        for( int k = 0; k < 50; k++ )
         {
             int t = Run( firstChoice );
-            if( t < best )
+            if( t < myBestTime )
             {
-                best = t;
+                myBestTime = t;
                 bestTimeLines = TimeLines();
-                if( best <= lowest+myGoodEnough ) {
+                if( myBestTime <= myLowBound+myGoodEnough ) {
                     // obtained good enough result, display and return
-                    DisplayBest( best, bestTimeLines );
+                    DisplayBest( myBestTime, bestTimeLines );
                     return;
                 }
             }
             //DisplayCoreTimeLines( myCore );
         }
     }
-    DisplayBest( best, bestTimeLines );
+    DisplayBest( myBestTime, bestTimeLines );
 }
 void cProcessor::DisplayBest(
                              int best,
                              std::vector< cCore >& bestTimeLines )
 {
     std::cout << "\n========================\nBest Complete in " << best << "\n";
-    DisplayCoreTimeLines( bestTimeLines );
+    //DisplayCoreTimeLines( bestTimeLines );
 }
 
+void cProcessor::Record()
+{
+    ofstream record( myRecordPath, ios_base::app );
+    record << myTaskGraph.myLoadedPath
+        <<" "<< myBestTime
+        <<" "<< myLowBound
+        <<" "<< myBestTime-myLowBound<< "\n";
+}
 

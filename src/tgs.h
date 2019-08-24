@@ -48,21 +48,28 @@ class cTaskGraph
 
 public:
 
-
+    std::string myLoadedPath;
     bool flagCritPath;
 
     /** Read task graph from file
         @param[in] path to file
+        @return 0 no file read
+        @return 1 one file read
+        @return 2 file read, more to come
+
         If files extension is .stg, use standard task graph format
         http://www.kasahara.cs.waseda.ac.jp/schedule/format_e.html#nocomm
+        If no file extension, load all stg files in folder
     */
-    void Load( const std::string& path );
+    int Load( const std::string& path );
 
     /** Read task graph from standard task graph format file
         @param[in] path to file
         http://www.kasahara.cs.waseda.ac.jp/schedule/format_e.html#nocomm
     */
     void LoadSTG( const std::string& path );
+
+    bool LoadAll( const std::string& path );
 
     int LowestTime( int coreCount );
 
@@ -171,12 +178,14 @@ public:
     cProcessor( int cores, cTaskGraph& taskGraph );
 
     void Options( int ac, char* av[] );
-    void Load();
+    int Load();
 
     /// Run the tasks
     int Run( int firstChoice );
 
     void Optimize();
+
+    void Record();
 
     void DisplayCoreTimeLines( std::vector<cCore>& TL);
 
@@ -190,9 +199,12 @@ private:
     std::string stgPath;
     bool flagNoCritPath;
     int myGoodEnough;       /// Distance from lowest bound accepted as good enough
+    std::string myRecordPath;
 
     cTaskGraph& myTaskGraph;            ///< tasks to be run
+    int myLowBound;                     ///< low bound on completion time
     int myTime;                         ///< current time
+    int myBestTime;
     std::multimap< int, int > myMapCompletions;     ///< upcoming task completions, time mapped to task
     std::vector< cCore > myCore;        ///< cores used to run tasks
 

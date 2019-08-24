@@ -9,18 +9,24 @@ int main( int argc, char* argv[] )
     // construct taskgraph
     cTaskGraph TaskGraph;
 
-    // load taskgraph from file specified on command line
-   // TaskGraph.Load( argv[1] );
-
-    // display taskgraph loaded
-    //TaskGraph.Display();
-
-     // contruct double core processor to run taskgraph
+    // contruct double core processor to run taskgraph
     cProcessor Processor2( 2, TaskGraph );
     Processor2.Options( argc, argv );
-    Processor2.Load();
 
-    Processor2.Optimize();
+    while( true )
+    {
+        int ret = Processor2.Load();
+        if( ! ret )
+            break;
+
+        Processor2.Optimize();
+
+        Processor2.Record();
+
+
+        if( ret == 1 )
+            break;          // no more files to process
+    }
 
     return 0;
 }
