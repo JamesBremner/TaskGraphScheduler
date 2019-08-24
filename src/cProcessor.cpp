@@ -9,7 +9,7 @@ using namespace std;
 
 cProcessor::cProcessor( int cores, cTaskGraph& taskGraph )
     : myTaskGraph( taskGraph )
-    , myGoodEnough( 1 )
+    , myGoodEnough( 0 )
     , myRecordPath( "record.txt" )
 {
     if( cores < 1 )
@@ -110,10 +110,10 @@ void cProcessor::Record()
     static bool first = true;
     if( first )
     {
-        record << "taskgraph                  completion   extime( secs )  lowbound   delta   waseda\n";
+        record << "taskgraph                  completion   extime( secs )  lowbound   delta   waseda     delta\n";
         first = false;
     }
-    myTimeReport = raven::set::cRunWatch::Report();
+    string myTimeReport = raven::set::cRunWatch::Report();
     raven::set::cRunWatch::Clear();
     int p = myTimeReport.find(".");
     int q = myTimeReport.find_first_of(" \t",p);
@@ -124,6 +124,7 @@ void cProcessor::Record()
             <<setw(10)<< extime
             <<setw(10)<< myTaskGraph.myLowestTime
             <<setw(10)<< myBestTime-myTaskGraph.myLowestTime
-            <<setw(10)<< myWaseda.Extract( myTaskGraph.myLoadedPath ) << "\n";
+            <<setw(10)<< myWaseda.Extract( myTaskGraph.myLoadedPath )
+            <<setw(10)<< myBestTime - myWaseda.ExtractBest( myTaskGraph.myLoadedPath ) << "\n";
 }
 

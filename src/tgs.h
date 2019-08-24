@@ -178,6 +178,7 @@ class cWaseda
 public:
     cWaseda();
     std::string Extract( const std::string& file );
+    int ExtractBest( const std::string& file );
     std::string myS;
 };
 

@@ -32,5 +32,13 @@ std::string cWaseda::Extract( const std::string& file )
     int q = myS.find("</p>",p);
     string ret = myS.substr(p+8,q-p-8);
     return ret;
+}
 
+int cWaseda::ExtractBest( const std::string& file )
+{
+    string s = Extract( file );
+    int p = s.find("-");
+    if( p != -1 )
+        s = s.substr(p+1);
+    return atoi( s.c_str());
 }
