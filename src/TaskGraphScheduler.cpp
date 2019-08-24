@@ -1,11 +1,13 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include "cRunWatch.h"
 #include "tgs.h"
 
 int main( int argc, char* argv[] )
 {
+    raven::set::cRunWatch::Start();
+
     // construct taskgraph
     cTaskGraph TaskGraph;
 
@@ -27,6 +29,8 @@ int main( int argc, char* argv[] )
         if( ret == 1 )
             break;          // no more files to process
     }
+
+    raven::set::cRunWatch::Report();
 
     return 0;
 }

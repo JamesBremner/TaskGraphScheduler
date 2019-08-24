@@ -12,7 +12,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc_v83" />
-				<Option parameters="..\data\50\rand0001.stg" />
+				<Option parameters="--tasks ..\data\50" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -36,17 +36,22 @@
 			<Add option="-std=c++17" />
 			<Add directory="../../../src" />
 			<Add directory="$(#boost.include)" />
+			<Add directory="$(#ravenset)" />
 		</Compiler>
 		<Linker>
 			<Add option="-static-libstdc++" />
 			<Add option="-static-libgcc" />
 			<Add option="-static" />
 			<Add library="boost_program_options-mgw82-mt-x64-1_70" />
+			<Add library="boost_thread-mgw82-mt-x64-1_70" />
 			<Add library="stdc++fs" />
 			<Add directory="$(#boost.lib)" />
 		</Linker>
+		<Unit filename="../../../../raven-set/cRunWatch.cpp" />
+		<Unit filename="../../../../raven-set/cRunWatch.h" />
 		<Unit filename="../../../src/TaskGraphScheduler.cpp" />
 		<Unit filename="../../../src/cProcessor.cpp" />
+		<Unit filename="../../../src/cWaseda.cpp" />
 		<Unit filename="../../../src/tgs.cpp" />
 		<Unit filename="../../../src/tgs.h" />
 		<Extensions>

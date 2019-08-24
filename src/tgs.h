@@ -1,4 +1,5 @@
 #include <boost/graph/adjacency_list.hpp>
+/// A task
 class cTask
 {
 public:
@@ -32,6 +33,8 @@ public:
         return myCore == -1;
     }
 };
+
+/// Task dependency
 class cEdge
 {
 public:
@@ -43,6 +46,7 @@ public:
     }
 };
 
+/// Tasks, with execution times and dependencies
 class cTaskGraph
 {
 
@@ -139,6 +143,7 @@ private:
     bool IsOnCriticalPath( int task );
 };
 
+/// A core that can run a single task at a time
 class cCore
 {
 public:
@@ -164,6 +169,14 @@ public:
 private:
     bool myFree;        ///< true if core is not running a task
     std::map< float, int > myMapBusy;
+};
+
+class cWaseda
+{
+public:
+    cWaseda();
+    std::string Extract( const std::string& file );
+    std::string myS;
 };
 
 /// A processor that can run tasks in a task graph on one or more cores in parrallel
@@ -200,6 +213,7 @@ private:
     bool flagNoCritPath;
     int myGoodEnough;       /// Distance from lowest bound accepted as good enough
     std::string myRecordPath;
+    cWaseda myWaseda;
 
     cTaskGraph& myTaskGraph;            ///< tasks to be run
     int myLowBound;                     ///< low bound on completion time
