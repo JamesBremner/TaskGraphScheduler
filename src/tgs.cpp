@@ -252,8 +252,11 @@ cTaskGraph::FindReadyTasks()
     vector<int> Ready;
     if( IsDone() )
         return Ready;
+    g[(boost::graph_traits<graph_t>::vertex_descriptor)0].myfDone = true;
     for (auto vd : boost::make_iterator_range(vertices(g)))
     {
+        if( vd == 0 )
+            continue;
         //cout << "check ready " << vd << "\n";
         if( ! g[vd].IsWaiting() )
             continue;
@@ -293,34 +296,6 @@ void cTaskGraph::CriticalPath()
 //    }
 
     graph_t gd = g;
-    int start_dummy = 0;
-    int end_dummy   = num_vertices( gd );
-    for( auto vd : boost::make_iterator_range(vertices(g)))
-    {
-        if( vd == 0 )
-            continue;
-        bool fconnect_to_start_dummy = true;
-        bool fconnect_to_end_dummy = true;
-        for (auto ed : boost::make_iterator_range(edges(g)))
-        {
-            if( target( ed, g ) == vd )
-                fconnect_to_start_dummy = false;
-            if( source( ed, g ) == vd )
-                fconnect_to_end_dummy = false;
-        }
-        if( fconnect_to_start_dummy )
-        {
-            //cout << vd << " to start\n";
-            add_edge( start_dummy, vd, gd );
-        }
-        if( fconnect_to_end_dummy )
-        {
-            //cout << vd << " to end\n";
-            add_edge( vd, end_dummy, gd );
-        }
-    }
-    gd[start_dummy].myCost = 0;
-    gd[end_dummy].myCost = 0;
 
     /** set edge costs to 100 / taskcost
         so dijsktra will find the longest, critical path
@@ -343,30 +318,33 @@ void cTaskGraph::CriticalPath()
             rc = 100 / c;
         gd[ed].myCost = rc;
 
-//        cout << target( ed, gd )
+//        cout <<source(ed,gd)
+//             <<"->"<< target( ed, gd )
 //             <<" "<<gd[target( ed, gd )].myCost
 //             <<" "<<gd[ed].myCost << "\n";
     }
 
     auto weights = boost::weight_map(boost::get(&cEdge::myCost, gd));
-    vector<int> predecessors(boost::num_vertices(gd));
+    vector<int> predecessors(num_vertices(gd));
     auto it = boost::make_iterator_property_map(predecessors.begin(), boost::get(boost::vertex_index,gd));
 
     boost::dijkstra_shortest_paths(
-        gd, start_dummy,
+        gd, 0,
         weights.predecessor_map(it));
 
     //cout << "\nCritical path: ";
     myCriticalPath.clear();
-    int cv = end_dummy;
+    int cv = num_vertices(gd)-1;
     while( true )
     {
+        if( cv == predecessors[cv] )
+            throw runtime_error("Critical path failed");
         cv = predecessors[cv];
 
-        if( cv == start_dummy)
+        if( cv == 0 )
             break;
 
-        //cout << cv << " " ;
+        // cout << cv << " " ;
         myCriticalPath.push_back( cv );
 
     }
@@ -379,6 +357,13 @@ void cTaskGraph::Load( const std::string& path )
     {
         LoadSTG(path);
         CriticalPath();
+        if( flagCritPath )
+        {
+            cout << "\nCritical path: ";
+            for( auto cv : myCriticalPath )
+                cout << cv <<" ";
+            cout << "\n";
+        }
         return;
     }
 
@@ -439,10 +424,13 @@ void cTaskGraph::LoadSTG( const std::string& path )
     string line;
     while( getline( f, line ) )
     {
+        //cout << line << "\n";
+
         if( line[0] == '#')
             break;
         if( task == -1 )
         {
+            // first line gives number of tasks
             taskcount = atoi( line.c_str());
             task++;
             continue;
@@ -453,46 +441,32 @@ void cTaskGraph::LoadSTG( const std::string& path )
             task++;
             continue;
         }
-        if( task > taskcount )
+        // task line
+        for(
+            int k = 0;
+            k < atoi( line.substr(22).c_str() );
+            k++ )
         {
-            // exit dummy node
-            break;
+            // previous task
+            add_edge(
+                atoi( line.substr(33+k*11).c_str() ),
+                task,
+                g);
         }
-        int cost = atoi( line.substr(11).c_str() );
-        int prevcount = atoi( line.substr(22).c_str() );
-        //cout << task <<" "<< cost <<" "<< prevcount << "\n";
-        map_task_to_cost.insert( std::make_pair(
-                                     task,
-                                     cost ));
-        vector<int> prev;
-        for( int k = 0; k < prevcount; k++ )
-        {
-            prev.push_back( atoi( line.substr(33+k*11).c_str() ) );
-        }
-        if( (int)prev.size() == 1 && prev[0] == 0 )
-        {
-            task++;
-            continue;
-        }
-        for( auto p : prev )
-        {
-            //cout << p << " ";
-            if( p )
-                add_edge(
-                    p,
-                    task,
-                    g);
-        }
-        //cout << "\n";
+        // task cost
+        g[ task ].myCost = atoi( line.substr(11).c_str() );
+
         task++;
     }
 
-    for (auto vd : boost::make_iterator_range(vertices(g)))
-    {
-        auto p = map_task_to_cost.find( vd );
-        g[vd].myCost = p->second;
-    }
-    cout << "\n";
+
+//    for (auto ed : boost::make_iterator_range(edges(g)))
+//        cout <<source(ed,g)
+//             <<"->"<< target( ed, g )
+//             <<" "<<g[target( ed, g )].myCost
+//             <<" "<<g[ed].myCost << "\n";
+//
+//    cout << "\n";
 }
 
 void cCore::Start( int task, int time )
