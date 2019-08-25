@@ -303,6 +303,9 @@ void cTaskGraph::CriticalPath()
 
     graph_t gd = g;
 
+    if( ! num_vertices(gd) )
+        throw runtime_error("CriticalPath no vertices");
+
     /** set edge costs to 100 / taskcost
         so dijsktra will find the longest, critical path
     */
@@ -338,7 +341,7 @@ void cTaskGraph::CriticalPath()
         gd, 0,
         weights.predecessor_map(it));
 
-    //cout << "\nCritical path: ";
+    //cout << "\nCritical path 1: ";
     myCriticalPath.clear();
     int cv = num_vertices(gd)-1;
     while( true )
@@ -350,7 +353,7 @@ void cTaskGraph::CriticalPath()
         if( cv == 0 )
             break;
 
-        // cout << cv << " " ;
+         //cout << cv << " " ;
         myCriticalPath.push_back( cv );
 
     }
@@ -371,7 +374,7 @@ int cTaskGraph::Load( const std::string& path )
     else if( LoadAll( path ) )
         ret = 2;
     else
-        ret = 0;
+        return 0;
 
     CriticalPath();
     if( flagCritPath )
@@ -449,6 +452,9 @@ void cTaskGraph::LoadSTG( const std::string& path )
     }
 
     cout << path << " Loaded\n";
+    if( ! num_vertices(g) )
+        throw runtime_error("LoadSTG no vertices " + path);
+
     myLoadedPath = path;
 //    for (auto ed : boost::make_iterator_range(edges(g)))
 //        cout <<source(ed,g)

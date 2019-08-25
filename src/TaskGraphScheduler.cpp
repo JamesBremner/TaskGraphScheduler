@@ -18,17 +18,21 @@ int main( int argc, char* argv[] )
     while( true )
     {
         int ret = Processor2.Load();
-        if( ! ret )
+        if( ! ret ) {
             break;
+        }
 
         Processor2.Optimize();
 
+
         Processor2.Record();
 
-
-        if( ret == 1 )
+        if( ret == 1 ) {
             break;          // no more files to process
+        }
     }
+
+    Processor2.FinalRecord();
 
     return 0;
 }

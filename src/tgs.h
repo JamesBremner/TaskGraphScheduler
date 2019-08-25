@@ -1,4 +1,8 @@
+#include <fstream>
 #include <boost/graph/adjacency_list.hpp>
+
+class cProcessor;
+
 /// A task
 class cTask
 {
@@ -182,6 +186,21 @@ public:
     std::string myS;
 };
 
+class cResultsRecord
+{
+public:
+    cWaseda myWaseda;
+    void RecordPath( const std::string& path );
+    void Write( cProcessor& P);
+    void Final();
+private:
+    std::ofstream myFile;
+    int myWasedaEqual;
+    int myWasedaOffByOne;
+    int myWasedaMiss;
+    void ExecutionTimeReport();
+};
+
 /// A processor that can run tasks in a task graph on one or more cores in parrallel
 class cProcessor
 {
@@ -201,7 +220,14 @@ public:
 
     void Optimize();
 
-    void Record();
+    void Record()
+    {
+        myResultsRecord.Write( *this );
+    }
+    void FinalRecord()
+    {
+        myResultsRecord.Final();
+    }
 
     void DisplayCoreTimeLines( std::vector<cCore>& TL);
 
@@ -210,13 +236,20 @@ public:
     {
         return myCore;
     }
+    std::string LoadedPath()
+    {
+        return myTaskGraph.myLoadedPath;
+    }
+    int BestTime() const
+    {
+        return myBestTime;
+    }
 
 private:
     std::string stgPath;
     bool flagNoCritPath;
     int myGoodEnough;       /// Distance from lowest bound accepted as good enough
-    std::string myRecordPath;
-    cWaseda myWaseda;
+    cResultsRecord myResultsRecord;
 
     cTaskGraph& myTaskGraph;            ///< tasks to be run
     int myTime;                         ///< current time
@@ -230,7 +263,5 @@ private:
     void DisplayBest(
         int best,
         std::vector< cCore >& bestTimeLines );
-    float TimeReport();
-
 };
 

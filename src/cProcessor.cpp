@@ -10,7 +10,6 @@ using namespace std;
 cProcessor::cProcessor( int cores, cTaskGraph& taskGraph )
     : myTaskGraph( taskGraph )
     , myGoodEnough( 0 )
-    , myRecordPath( "record.txt" )
 {
     if( cores < 1 )
         throw std::runtime_error("Bad core count");
@@ -23,12 +22,13 @@ cProcessor::cProcessor( int cores, cTaskGraph& taskGraph )
 void cProcessor::Options( int ac, char* av[] )
 {
     namespace po = boost::program_options;
-// Declare the supported options.
+
+    // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help", "produce help message")
     ("tasks", po::value< string >(), "task graph file, or folder")
-    ("record", po::value< string >(), "record results file")
+    ("record", po::value< string >()->default_value("record.txt"), "record results file")
     ("nopath", po::bool_switch( &flagNoCritPath )->default_value(false), "Do not prioritize critical path tasks ( default: off )")
     ;
 
@@ -50,9 +50,8 @@ void cProcessor::Options( int ac, char* av[] )
 
     if( vm.count("record"))
     {
-        myRecordPath = vm["record"].as< string >();
+        myResultsRecord.RecordPath( vm["record"].as< string >() );
     }
-    std::remove( myRecordPath.c_str() );
 }
 int cProcessor::Load()
 {
@@ -102,34 +101,4 @@ void cProcessor::DisplayBest(
 {
     std::cout << "\n========================\nBest Complete in " << best << "\n";
     //DisplayCoreTimeLines( bestTimeLines );
-}
-
-void cProcessor::Record()
-{
-    ofstream record( myRecordPath, ios_base::app );
-
-    static bool first = true;
-    if( first )
-    {
-        record << "taskgraph                  completion   extime( secs )  waseda     delta\n";
-        first = false;
-    }
-
-    record
-            <<setw(20)<< myTaskGraph.myLoadedPath
-            <<setw(10)<< myBestTime
-            <<"    "<<fixed<<setprecision(3)<<setw(10)<< TimeReport()
-            //<<setw(10)<< myTaskGraph.myLowestTime
-            //<<setw(10)<< myBestTime-myTaskGraph.myLowestTime
-            <<setw(10)<< myWaseda.Extract( myTaskGraph.myLoadedPath )
-            <<setw(10)<< myBestTime - myWaseda.ExtractBest( myTaskGraph.myLoadedPath ) << "\n";
-}
-float cProcessor::TimeReport()
-{
-    string myTimeReport = raven::set::cRunWatch::Report();
-    raven::set::cRunWatch::Clear();
-    int p = myTimeReport.find(".");
-    int q = myTimeReport.find_first_of(" \t",p);
-    string extime = myTimeReport.substr(p-2,q-p+2);
-    return atof( extime.c_str() );
 }
