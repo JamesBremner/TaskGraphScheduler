@@ -77,7 +77,7 @@ void cProcessor::Optimize()
     for( int firstChoice : ReadyAtStart )
     {
         //cout << "Searching schedules with first task " << firstChoice << "\n";
-        for( int k = 0; k < 50; k++ )
+        for( int k = 0; k < 100; k++ )
         {
             int t = Run( firstChoice );
             if( t < myBestTime )
@@ -107,24 +107,29 @@ void cProcessor::DisplayBest(
 void cProcessor::Record()
 {
     ofstream record( myRecordPath, ios_base::app );
+
     static bool first = true;
     if( first )
     {
-        record << "taskgraph                  completion   extime( secs )  lowbound   delta   waseda     delta\n";
+        record << "taskgraph                  completion   extime( secs )  waseda     delta\n";
         first = false;
     }
+
+    record
+            <<setw(20)<< myTaskGraph.myLoadedPath
+            <<setw(10)<< myBestTime
+            <<"    "<<fixed<<setprecision(3)<<setw(10)<< TimeReport()
+            //<<setw(10)<< myTaskGraph.myLowestTime
+            //<<setw(10)<< myBestTime-myTaskGraph.myLowestTime
+            <<setw(10)<< myWaseda.Extract( myTaskGraph.myLoadedPath )
+            <<setw(10)<< myBestTime - myWaseda.ExtractBest( myTaskGraph.myLoadedPath ) << "\n";
+}
+float cProcessor::TimeReport()
+{
     string myTimeReport = raven::set::cRunWatch::Report();
     raven::set::cRunWatch::Clear();
     int p = myTimeReport.find(".");
     int q = myTimeReport.find_first_of(" \t",p);
     string extime = myTimeReport.substr(p-2,q-p+2);
-    record
-            <<setw(20)<< myTaskGraph.myLoadedPath
-            <<setw(10)<< myBestTime
-            <<setw(10)<< extime
-            <<setw(10)<< myTaskGraph.myLowestTime
-            <<setw(10)<< myBestTime-myTaskGraph.myLowestTime
-            <<setw(10)<< myWaseda.Extract( myTaskGraph.myLoadedPath )
-            <<setw(10)<< myBestTime - myWaseda.ExtractBest( myTaskGraph.myLoadedPath ) << "\n";
+    return atof( extime.c_str() );
 }
-

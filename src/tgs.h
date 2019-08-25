@@ -230,6 +230,7 @@ private:
     void DisplayBest(
         int best,
         std::vector< cCore >& bestTimeLines );
+    float TimeReport();
 
 };
 
