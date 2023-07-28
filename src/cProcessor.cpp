@@ -19,40 +19,41 @@ cProcessor::cProcessor( int cores, cTaskGraph& taskGraph )
     srand (time(NULL));
 }
 
-void cProcessor::Options( int ac, char* av[] )
-{
-    namespace po = boost::program_options;
+// void cProcessor::Options( int ac, char* av[] )
+// {
+//     namespace po = boost::program_options;
 
-    // Declare the supported options.
-    po::options_description desc("Allowed options");
-    desc.add_options()
-    ("help", "produce help message")
-    ("tasks", po::value< string >(), "task graph file, or folder")
-    ("record", po::value< string >()->default_value("record.txt"), "record results file")
-    ("nopath", po::bool_switch( &flagNoCritPath )->default_value(false), "Do not prioritize critical path tasks ( default: off )")
-    ;
+//     // Declare the supported options.
+//     po::options_description desc("Allowed options");
+//     desc.add_options()
+//     ("help", "produce help message")
+//     ("tasks", po::value< string >(), "task graph file, or folder")
+//     ("record", po::value< string >()->default_value("record.txt"), "record results file")
+//     ("nopath", po::bool_switch( &flagNoCritPath )->default_value(false), "Do not prioritize critical path tasks ( default: off )")
+//     ;
 
-    po::variables_map vm;
-    po::store(po::parse_command_line(ac, av, desc), vm);
-    po::notify(vm);
+//     po::variables_map vm;
+//     po::store(po::parse_command_line(ac, av, desc), vm);
+//     po::notify(vm);
 
-    if (vm.count("help"))
-    {
-        cout << desc << "\n";
-        exit(1);
-    }
-    if( vm.count("tasks"))
-    {
-        stgPath = vm["tasks"].as< string >();
-    }
+//     if (vm.count("help"))
+//     {
+//         cout << desc << "\n";
+//         exit(1);
+//     }
+//     if( vm.count("tasks"))
+//     {
+//         stgPath = vm["tasks"].as< string >();
+//     }
 
-    myTaskGraph.flagCritPath = ! flagNoCritPath;
+//     myTaskGraph.flagCritPath = ! flagNoCritPath;
 
-    if( vm.count("record"))
-    {
-        myResultsRecord.RecordPath( vm["record"].as< string >() );
-    }
-}
+//     if( vm.count("record"))
+//     {
+//         myResultsRecord.RecordPath( vm["record"].as< string >() );
+//     }
+// }
+
 int cProcessor::Load()
 {
     int ret = myTaskGraph.Load( stgPath );
