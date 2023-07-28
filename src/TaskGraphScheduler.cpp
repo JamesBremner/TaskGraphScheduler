@@ -13,7 +13,7 @@ int main( int argc, char* argv[] )
 
     // contruct double core processor to run taskgraph
     cProcessor Processor2( 2, TaskGraph );
-    //Processor2.Options( argc, argv );
+    Processor2.Options( argc, argv );
 
     while( true )
     {

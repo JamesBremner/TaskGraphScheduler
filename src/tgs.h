@@ -60,6 +60,10 @@ public:
     bool flagCritPath;
     int myLowestTime;
 
+    cTaskGraph()
+    : flagCritPath( true )
+    {}
+
     /** Read task graph from file
         @param[in] path to file
         @return 0 no file read

@@ -48,7 +48,10 @@ int cWaseda::ExtractBest( const std::string& file )
 
 void cResultsRecord::RecordPath( const std::string& path )
 {
-    myFile.open( path );
+    if( path.empty() )
+        myFile.open("record.txt");
+    else
+        myFile.open( path );
     if( ! myFile.is_open() )
         throw runtime_error("Cannot open record file");
     myFile << "taskgraph                  completion   extime( secs )  waseda     delta\n";
