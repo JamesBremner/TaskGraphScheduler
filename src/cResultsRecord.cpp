@@ -95,18 +95,18 @@ void cResultsRecord::ExecutionTimeReport()
 }
 void cResultsRecord::Final()
 {
-    cout
-                << "\nComparisons with Waseda Results"
-            <<"\nEquals:        " << myWasedaEqual
-            << "\nMissed by one: " << myWasedaOffByOne
-            << "\nMiss by more:  " << myWasedaMiss
-            << "\n";
+    // cout
+    //             << "\nComparisons with Waseda Results"
+    //         <<"\nEquals:        " << myWasedaEqual
+    //         << "\nMissed by one: " << myWasedaOffByOne
+    //         << "\nMiss by more:  " << myWasedaMiss
+    //         << "\n";
 
-    myFile
-            << "\nComparisons with Waseda Results"
-            <<"\nEquals:        " << myWasedaEqual
-            << "\nMissed by one: " << myWasedaOffByOne
-            << "\nMiss by more:  " << myWasedaMiss
-            << "\n";
+    // myFile
+    //         << "\nComparisons with Waseda Results"
+    //         <<"\nEquals:        " << myWasedaEqual
+    //         << "\nMissed by one: " << myWasedaOffByOne
+    //         << "\nMiss by more:  " << myWasedaMiss
+    //         << "\n";
     myFile.close();
 }

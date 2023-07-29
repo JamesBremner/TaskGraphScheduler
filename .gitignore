@@ -3,5 +3,4 @@
 *.depend
 *.exe
 *.layout
-*.stg
 bin/record.txt
