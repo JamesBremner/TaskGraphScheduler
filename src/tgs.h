@@ -11,15 +11,16 @@ public:
     bool myfDone;
     int myStart;
     int myComplete;
-    int myCore;         ///< core it runs on
+    int myCore; ///< core it runs on
     cTask()
-        : myCost( 0 )
-        , myfDone( false )
-        , myCore( -1 )
+        : myCost(0), myfDone(false), myCore(-1)
     {
-
     }
-    int Start( int time, int core )
+    cTask(int cost)
+        : myCost(cost), myfDone(false), myCore(-1)
+    {
+    }
+    int Start(int time, int core)
     {
         myCore = core;
         myStart = time;
@@ -29,7 +30,7 @@ public:
     void Restart()
     {
         myfDone = false;
-        myCore  = -1;
+        myCore = -1;
     }
     /// true if waiting to be assigned to a core
     bool IsWaiting() const
@@ -44,9 +45,8 @@ class cEdge
 public:
     int myCost;
     cEdge()
-        : myCost( 0 )
+        : myCost(0)
     {
-
     }
 };
 
@@ -55,14 +55,14 @@ class cTaskGraph
 {
 
 public:
-
     std::string myLoadedPath;
     bool flagCritPath;
     int myLowestTime;
 
     cTaskGraph()
-    : flagCritPath( false )
-    {}
+        : flagCritPath(false)
+    {
+    }
 
     /** Read task graph from file
         @param[in] path to file
@@ -74,17 +74,17 @@ public:
         http://www.kasahara.cs.waseda.ac.jp/schedule/format_e.html#nocomm
         If no file extension, load all stg files in folder
     */
-    int Load( const std::string& path );
+    int Load(const std::string &path);
 
     /** Read task graph from standard task graph format file
         @param[in] path to file
         http://www.kasahara.cs.waseda.ac.jp/schedule/format_e.html#nocomm
     */
-    void LoadSTG( const std::string& path );
+    void LoadSTG(const std::string &path);
 
-    bool LoadAll( const std::string& path );
+    bool LoadAll(const std::string &path);
 
-    void LowestTime( int coreCount );
+    void LowestTime(int coreCount);
 
     /// Clear all task done flags
     void Restart();
@@ -103,14 +103,14 @@ public:
         @param[in] task
         @return core which is now free
     */
-    int Done( int task )
+    int Done(int task)
     {
         // mark task complete
         myTask[task].myfDone = true;
 
         // if task was on critical path
         // recaclulate path with zreo cost for completed tasks
-        if( IsOnCriticalPath( task ))
+        if (IsOnCriticalPath(task))
             CriticalPath();
 
         // return the core freed
@@ -123,49 +123,36 @@ public:
         @param[in] time task starts
         @return time task will complete
     */
-    int Start( int task, int core, int time )
+    int Start(int task, int core, int time)
     {
-        return myTask[task].Start( time, core );
+        return myTask[task].Start(time, core);
     }
 
     bool IsDone();
 
-    int Choose( std::vector<int> ready );
+    int Choose(std::vector<int> ready);
+
+    std::string textGraph();
 
 private:
 
+    std::vector<cTask> myTask;  // the tasks to be completed
+    raven::graph::cGraph g;     // task dependencies
 
-    // /// graph with bundled properties
-    // typedef boost::adjacency_list
-    // <
-    // boost::listS,
-    //       boost::vecS,
-    //       boost::directedS,
-    //       cTask,
-    //       cEdge > graph_t;
-    // typedef boost::graph_traits<graph_t>::vertex_descriptor vd_t;
-
-    // graph_t g;
-
-    std::vector< cTask > myTask;
-    raven::graph::cGraph g;
-
-    std::vector<int> myCriticalPath;    ///< tasks on critical path, reverse order
+    std::vector<int> myCriticalPath; ///< tasks on critical path, reverse order
 
     /// Calculate critical path
     void CriticalPath();
-    bool IsOnCriticalPath( int task );
+    bool IsOnCriticalPath(int task);
 };
 
 /// A core that can run a single task at a time
 class cCore
 {
 public:
-
     cCore()
-        : myFree( true )
+        : myFree(true)
     {
-
     }
     void Clear()
     {
@@ -176,21 +163,21 @@ public:
     {
         return myFree;
     }
-    void Start( int task, int time );
-    void Done( int time );
+    void Start(int task, int time);
+    void Done(int time);
     void Display();
 
 private:
-    bool myFree;        ///< true if core is not running a task
-    std::map< float, int > myMapBusy;
+    bool myFree; ///< true if core is not running a task
+    std::map<float, int> myMapBusy;
 };
 
 class cWaseda
 {
 public:
     cWaseda();
-    std::string Extract( const std::string& file );
-    int ExtractBest( const std::string& file );
+    std::string Extract(const std::string &file);
+    int ExtractBest(const std::string &file);
     std::string myS;
 };
 
@@ -198,9 +185,10 @@ class cResultsRecord
 {
 public:
     cWaseda myWaseda;
-    void RecordPath( const std::string& path );
-    void Write( cProcessor& P);
+    void RecordPath(const std::string &path);
+    void Write(cProcessor &P);
     void Final();
+
 private:
     std::ofstream myFile;
     int myWasedaEqual;
@@ -213,33 +201,32 @@ private:
 class cProcessor
 {
 public:
-
     /** CTOR
         @param[in] cores number of cores that can run tasks in parrallel
         @param[in] taskGraph
     */
-    cProcessor( int cores, cTaskGraph& taskGraph );
+    cProcessor(int cores, cTaskGraph &taskGraph);
 
-    void Options( int ac, char* av[] );
+    void Options(int ac, char *av[]);
     int Load();
 
     /// Run the tasks
-    int Run( int firstChoice );
+    int Run(int firstChoice);
 
     void Optimize();
 
     void Record()
     {
-        myResultsRecord.Write( *this );
+        myResultsRecord.Write(*this);
     }
     void FinalRecord()
     {
         myResultsRecord.Final();
     }
 
-    void DisplayCoreTimeLines( std::vector<cCore>& TL);
+    void DisplayCoreTimeLines(std::vector<cCore> &TL);
 
-    std::vector< cCore >
+    std::vector<cCore>
     TimeLines()
     {
         return myCore;
@@ -256,20 +243,19 @@ public:
 private:
     std::string stgPath;
     bool flagNoCritPath;
-    int myGoodEnough;       /// Distance from lowest bound accepted as good enough
+    int myGoodEnough; /// Distance from lowest bound accepted as good enough
     cResultsRecord myResultsRecord;
 
-    cTaskGraph& myTaskGraph;            ///< tasks to be run
-    int myTime;                         ///< current time
+    cTaskGraph &myTaskGraph; ///< tasks to be run
+    int myTime;              ///< current time
     int myBestTime;
-    std::multimap< int, int > myMapCompletions;     ///< upcoming task completions, time mapped to task
-    std::vector< cCore > myCore;        ///< cores used to run tasks
+    std::multimap<int, int> myMapCompletions; ///< upcoming task completions, time mapped to task
+    std::vector<cCore> myCore;                ///< cores used to run tasks
 
     int FindFreeCore();
-    void Start( int task, int core );
+    void Start(int task, int core);
     bool WaitForNextTaskCompletion();
     void DisplayBest(
         int best,
-        std::vector< cCore >& bestTimeLines );
+        std::vector<cCore> &bestTimeLines);
 };
-

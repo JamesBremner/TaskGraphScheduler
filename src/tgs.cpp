@@ -90,6 +90,14 @@ bool cTaskGraph::IsOnCriticalPath(int task)
                 myCriticalPath.end(),
                 task) != myCriticalPath.end());
 }
+std::string cTaskGraph::textGraph()
+{
+    std::stringstream ss;
+    for( auto e : g.edgeList() )
+        ss << e.first <<"->"<< e.second << "\n";
+    return ss.str();
+}
+
 int cTaskGraph::Choose(std::vector<int> ready)
 {
     // cout << "choose ";
@@ -268,7 +276,7 @@ cTaskGraph::FindReadyTasks()
         {
             if (ed.second == ti)
             {
-                if (!myTask[ti].myfDone)
+                if (!myTask[ed.first].myfDone)
                 {
                     fReady = false;
                     break;
@@ -421,9 +429,8 @@ void cTaskGraph::LoadSTG(const std::string &path)
     {
         throw runtime_error("Cannot open " + path);
     }
-    map<int, int> map_task_to_cost;
     int taskcount;
-    int task = -1;
+    int lineCount = -1;
     string line;
     while (getline(f, line))
     {
@@ -431,20 +438,24 @@ void cTaskGraph::LoadSTG(const std::string &path)
 
         if (line[0] == '#')
             break;
-        if (task == -1)
+        if (lineCount == -1)
         {
             // first line gives number of tasks
             taskcount = atoi(line.c_str());
-            task++;
+            lineCount++;
             continue;
         }
-        if (task == 0)
+        if (lineCount == 0)
         {
             // entry dummy node
-            task++;
+            cTask t(0);
+            myTask.push_back( t );
+            lineCount++;
             continue;
         }
         // task line
+        cTask t(atoi(line.substr(11).c_str()));
+        myTask.push_back( t );
         for (
             int k = 0;
             k < atoi(line.substr(22).c_str());
@@ -452,27 +463,18 @@ void cTaskGraph::LoadSTG(const std::string &path)
         {
             // previous task
             g.add(
-                atoi(line.substr(33 + k * 11).c_str()),
-                task );
+                atoi(line.substr(44 + k * 11).c_str()),
+                myTask.size()-1 );
         }
-        // task cost
-        myTask[task].myCost = atoi(line.substr(11).c_str());
-
-        task++;
     }
 
-    cout << path << " Loaded " << task << " tasks\n";
+    cout << path << " Loaded " << myTask.size() << " tasks\n";
     if (!g.vertexCount())
         throw runtime_error("LoadSTG no vertices " + path);
 
     myLoadedPath = path;
-    //    for (auto ed : boost::make_iterator_range(edges(g)))
-    //        cout <<source(ed,g)
-    //             <<"->"<< target( ed, g )
-    //             <<" "<<g[target( ed, g )].myCost
-    //             <<" "<<g[ed].myCost << "\n";
-    //
-    //    cout << "\n";
+
+    std::cout << textGraph();
 }
 
 void cCore::Start(int task, int time)
