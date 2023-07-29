@@ -1,10 +1,11 @@
 #source file search paths
-VPATH = ./src ../raven-set
+VPATH = ./src ../raven-set ../Pathfinder/src
 
 	# compiler include search paths
 INCS = -I./include \
 	-I../windex/include \
 	-I../raven-set \
+	-I../Pathfinder/src \
 	-I../../code_ext/boost/boost1_78 
 
 LIBS = \
@@ -25,6 +26,8 @@ OBJ_starter = \
 	$(ODIR)/cProcessor.o \
 	$(ODIR)/cResultsRecord.o \
 	$(ODIR)/tgs.o \
+	$(ODIR)/cGraph.o \
+	$(ODIR)/GraphTheory.o \
 	$(ODIR)/cRunWatch.o \
 
 

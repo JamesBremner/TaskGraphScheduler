@@ -11,8 +11,8 @@ int main( int argc, char* argv[] )
     // construct taskgraph
     cTaskGraph TaskGraph;
 
-    // contruct double core processor to run taskgraph
-    cProcessor Processor2( 2, TaskGraph );
+    // contruct processor to run taskgraph
+    cProcessor Processor2( 1, TaskGraph );
     Processor2.Options( argc, argv );
 
     while( true )

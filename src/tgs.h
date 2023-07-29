@@ -1,5 +1,5 @@
 #include <fstream>
-#include <boost/graph/adjacency_list.hpp>
+#include "GraphTheory.h"
 
 class cProcessor;
 
@@ -61,7 +61,7 @@ public:
     int myLowestTime;
 
     cTaskGraph()
-    : flagCritPath( true )
+    : flagCritPath( false )
     {}
 
     /** Read task graph from file
@@ -106,7 +106,7 @@ public:
     int Done( int task )
     {
         // mark task complete
-        g[task].myfDone = true;
+        myTask[task].myfDone = true;
 
         // if task was on critical path
         // recaclulate path with zreo cost for completed tasks
@@ -114,7 +114,7 @@ public:
             CriticalPath();
 
         // return the core freed
-        return g[task].myCore;
+        return myTask[task].myCore;
     }
 
     /** Start a task
@@ -125,7 +125,7 @@ public:
     */
     int Start( int task, int core, int time )
     {
-        return g[task].Start( time, core );
+        return myTask[task].Start( time, core );
     }
 
     bool IsDone();
@@ -135,17 +135,21 @@ public:
 private:
 
 
-    /// graph with bundled properties
-    typedef boost::adjacency_list
-    <
-    boost::listS,
-          boost::vecS,
-          boost::directedS,
-          cTask,
-          cEdge > graph_t;
-    typedef boost::graph_traits<graph_t>::vertex_descriptor vd_t;
+    // /// graph with bundled properties
+    // typedef boost::adjacency_list
+    // <
+    // boost::listS,
+    //       boost::vecS,
+    //       boost::directedS,
+    //       cTask,
+    //       cEdge > graph_t;
+    // typedef boost::graph_traits<graph_t>::vertex_descriptor vd_t;
 
-    graph_t g;
+    // graph_t g;
+
+    std::vector< cTask > myTask;
+    raven::graph::cGraph g;
+
     std::vector<int> myCriticalPath;    ///< tasks on critical path, reverse order
 
     /// Calculate critical path
