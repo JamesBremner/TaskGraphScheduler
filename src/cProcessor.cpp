@@ -13,7 +13,6 @@ cProcessor::cProcessor(int cores, cTaskGraph &taskGraph)
     if (cores < 1)
         throw std::runtime_error("Bad core count");
     myCore.resize(cores);
-    std::cout << "\nProcessor with " << cores << " cores\n";
     /* initialize random seed: */
     srand(time(NULL));
 }
@@ -24,10 +23,12 @@ void cProcessor::Options(int argc, char *argv[])
     P.add("help", "\tproduce help message");
     P.add("tasks", "task graph file, or folder");
     P.add("record", "record results file ( default: record.txt )");
+    P.add("cores", "number of cores that can process tasks in parrallel");
     //P.add("nopath", "Do not prioritize critical path tasks ( default: off )");
     P.parse(argc, argv);
     stgPath = P.value("tasks");
     myResultsRecord.RecordPath(P.value("record"));
+    myCore.resize(atoi(P.value("cores").c_str()));
 }
 //     namespace po = boost::program_options;
 

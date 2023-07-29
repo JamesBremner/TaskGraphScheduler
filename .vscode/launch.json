@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/starter.exe",
-              "args": ["--tasks","../data/so76782977.stg"],
+              "args": ["--tasks","../data/so76782977.stg","--cores","1"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/bin",
             "environment": [],
