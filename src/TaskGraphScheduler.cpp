@@ -22,7 +22,7 @@ int main( int argc, char* argv[] )
             break;
         }
 
-        Processor2.Optimize();
+        Processor2.Schedule();
 
 
         Processor2.Record();

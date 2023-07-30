@@ -362,19 +362,14 @@ void cTaskGraph::CriticalPath()
     // cout << "\nCritical path 1: ";
     myCriticalPath.clear();
     int cv = g.vertexCount() - 1;
-    while (true)
+    while (cv != 0 )
     {
         if (cv == pred[cv])
             throw runtime_error("Critical path failed");
         cv = pred[cv];
 
-        if (cv == 0)
-            break;
-
-        // cout << cv << " " ;
         myCriticalPath.push_back(cv);
     }
-    // cout << "\n";
 }
 
 int cTaskGraph::Load(const std::string &path)
@@ -474,7 +469,7 @@ void cTaskGraph::LoadSTG(const std::string &path)
 
     myLoadedPath = path;
 
-    std::cout << textGraph();
+    //std::cout << textGraph();
 }
 
 void cCore::Start(int task, int time)

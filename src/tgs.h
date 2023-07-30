@@ -213,7 +213,7 @@ public:
     /// Run the tasks
     int Run(int firstChoice);
 
-    void Optimize();
+    void Schedule();
 
     void Record()
     {
