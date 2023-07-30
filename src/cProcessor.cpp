@@ -58,6 +58,60 @@ void cProcessor::Schedule()
     //DisplayCoreTimeLines( myCore );
 
 }
+
+
+int cProcessor::Run(int firstChoice)
+{
+    // cout << "Run\n";
+    myTime = 0;
+
+    myTaskGraph.Restart();
+    for (auto &c : myCore)
+        c.Clear();
+
+    while (true)
+    {
+        int task;
+        if (firstChoice)
+        {
+            task = firstChoice;
+            firstChoice = 0;
+        }
+        else
+        {
+            if (myTaskGraph.IsDone())
+            {
+                cout << "all tasks complete at " << myTime << "\n";
+                break;
+            }
+            // find tasks that can be started
+            vector<int> ready = myTaskGraph.FindReadyTasks();
+            if (!ready.size())
+            {
+                if (!WaitForNextTaskCompletion())
+                    break;
+                continue;
+            }
+            // choose one
+            task = myTaskGraph.Choose(ready);
+        }
+
+        // find a free core
+        int core = FindFreeCore();
+        if (core == -1)
+            continue;
+
+        // start the task on the free core
+        Start(task, core);
+
+        //  if no free cores, wait for next task completion
+        if (FindFreeCore() == -1)
+            if (!WaitForNextTaskCompletion())
+                break;
+    }
+    return myTime;
+}
+
 void cProcessor::DisplayBest(
     int best,
     std::vector<cCore> &bestTimeLines)

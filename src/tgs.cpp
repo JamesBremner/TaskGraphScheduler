@@ -31,58 +31,6 @@ int cProcessor::FindFreeCore()
     return -1;
 }
 
-int cProcessor::Run(int firstChoice)
-{
-    // cout << "Run\n";
-    myTime = 0;
-
-    myTaskGraph.Restart();
-    for (auto &c : myCore)
-        c.Clear();
-
-    while (true)
-    {
-        int task;
-        if (firstChoice)
-        {
-            task = firstChoice;
-            firstChoice = 0;
-        }
-        else
-        {
-            if (myTaskGraph.IsDone())
-            {
-                cout << "all tasks complete at " << myTime << "\n";
-                break;
-            }
-            // find tasks that can be started
-            vector<int> ready = myTaskGraph.FindReadyTasks();
-            if (!ready.size())
-            {
-                if (!WaitForNextTaskCompletion())
-                    break;
-                continue;
-            }
-            // choose one
-            task = myTaskGraph.Choose(ready);
-        }
-
-        // find a free core
-        int core = FindFreeCore();
-        if (core == -1)
-            continue;
-
-        // start the task on the free core
-        Start(task, core);
-
-        //  if no free cores, wait for next task completion
-        if (FindFreeCore() == -1)
-            if (!WaitForNextTaskCompletion())
-                break;
-    }
-    return myTime;
-}
-
 bool cTaskGraph::IsOnCriticalPath(int task)
 {
     return (find(
@@ -93,8 +41,8 @@ bool cTaskGraph::IsOnCriticalPath(int task)
 std::string cTaskGraph::textGraph()
 {
     std::stringstream ss;
-    for( auto e : g.edgeList() )
-        ss << e.first <<"->"<< e.second << "\n";
+    for (auto e : g.edgeList())
+        ss << e.first << "->" << e.second << "\n";
     return ss.str();
 }
 
@@ -362,7 +310,7 @@ void cTaskGraph::CriticalPath()
     // cout << "\nCritical path 1: ";
     myCriticalPath.clear();
     int cv = g.vertexCount() - 1;
-    while (cv != 0 )
+    while (cv != 0)
     {
         if (cv == pred[cv])
             throw runtime_error("Critical path failed");
@@ -380,6 +328,12 @@ int cTaskGraph::Load(const std::string &path)
     if (path.substr(path.length() - 4) == ".stg")
     {
         LoadSTG(path);
+        ret = 1;
+    }
+
+    else if (path.substr(path.length() - 4) == ".ssv")
+    {
+        LoadSSV(path);
         ret = 1;
     }
 
@@ -415,10 +369,65 @@ bool cTaskGraph::LoadAll(const std::string &path)
     return false;
 }
 
+static std::vector<std::string> ParseSpaceDelimited(
+    const std::string &l)
+{
+    std::vector<std::string> token;
+    std::stringstream sst(l);
+    std::string a;
+    while (std::getline(sst, a, ' '))
+        token.push_back(a);
+
+    token.erase(
+        remove_if(
+            token.begin(),
+            token.end(),
+            [](std::string t)
+            {
+                return (t.empty());
+            }),
+        token.end());
+
+    return token;
+}
+
+void cTaskGraph::LoadSSV(const std::string &path)
+{
+    myTask.clear();
+
+    ifstream f(path);
+    if (!f.is_open())
+    {
+        throw runtime_error("Cannot open " + path);
+    }
+
+    // entry dummy node
+    cTask t(0);
+    myTask.push_back(t);
+
+    string line;
+    while (getline(f, line))
+    {
+        auto vToken = ParseSpaceDelimited(line);
+        cTask t(atoi(vToken[1].c_str()));
+        myTask.push_back(t);
+        for (
+            int k = 0;
+            k < atoi(vToken[2].c_str());
+            k++)
+        {
+            // previous task
+            g.add(
+                atoi(vToken[3 + k].c_str()),
+                myTask.size() - 1);
+        }
+    }
+}
+
 void cTaskGraph::LoadSTG(const std::string &path)
 {
     myTask.clear();
-    
+
     ifstream f(path);
     if (!f.is_open())
     {
@@ -444,13 +453,13 @@ void cTaskGraph::LoadSTG(const std::string &path)
         {
             // entry dummy node
             cTask t(0);
-            myTask.push_back( t );
+            myTask.push_back(t);
             lineCount++;
             continue;
         }
         // task line
         cTask t(atoi(line.substr(11).c_str()));
-        myTask.push_back( t );
+        myTask.push_back(t);
         for (
             int k = 0;
             k < atoi(line.substr(22).c_str());
@@ -459,7 +468,7 @@ void cTaskGraph::LoadSTG(const std::string &path)
             // previous task
             g.add(
                 atoi(line.substr(44 + k * 11).c_str()),
-                myTask.size()-1 );
+                myTask.size() - 1);
         }
     }
 
@@ -469,7 +478,7 @@ void cTaskGraph::LoadSTG(const std::string &path)
 
     myLoadedPath = path;
 
-    //std::cout << textGraph();
+    // std::cout << textGraph();
 }
 
 void cCore::Start(int task, int time)

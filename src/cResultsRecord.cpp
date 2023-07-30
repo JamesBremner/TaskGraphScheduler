@@ -63,13 +63,13 @@ void cResultsRecord::RecordPath( const std::string& path )
 void cResultsRecord::Write( cProcessor& P )
 {
     //cout << " cResultsRecord::Write "<<P.LoadedPath();
-    int waseda_delta =  P.BestTime() - myWaseda.ExtractBest( P.LoadedPath() );
-    if( ! waseda_delta )
-        myWasedaEqual++;
-    if( waseda_delta == 1 )
-        myWasedaOffByOne++;
-    if( waseda_delta > 1 )
-        myWasedaMiss++;
+    // int waseda_delta =  P.BestTime() - myWaseda.ExtractBest( P.LoadedPath() );
+    // if( ! waseda_delta )
+    //     myWasedaEqual++;
+    // if( waseda_delta == 1 )
+    //     myWasedaOffByOne++;
+    // if( waseda_delta > 1 )
+    //     myWasedaMiss++;
 
     myFile
             <<setw(20)<< P.LoadedPath()
@@ -80,9 +80,9 @@ void cResultsRecord::Write( cProcessor& P )
     //<<setw(10)<< myTaskGraph.myLowestTime
     //<<setw(10)<< myBestTime-myTaskGraph.myLowestTime
 
-    myFile
-            <<setw(10)<< myWaseda.Extract( P.LoadedPath() )
-            <<setw(10)<< waseda_delta << "\n";
+    // myFile
+    //         <<setw(10)<< myWaseda.Extract( P.LoadedPath() )
+    //         <<setw(10)<< waseda_delta << "\n";
 }
 void cResultsRecord::ExecutionTimeReport()
 {

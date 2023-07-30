@@ -84,6 +84,8 @@ public:
 
     bool LoadAll(const std::string &path);
 
+    void LoadSSV(const std::string &path);
+
     void LowestTime(int coreCount);
 
     /// Clear all task done flags
