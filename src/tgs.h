@@ -12,14 +12,26 @@ public:
     int myStart;
     int myComplete;
     int myCore; ///< core it runs on
+    bool myValid;
     cTask()
-        : myCost(0), myfDone(false), myCore(-1)
+        : myCost(0), myfDone(false), myCore(-1), myValid(true)
     {
     }
     cTask(int cost)
-        : myCost(cost), myfDone(false), myCore(-1)
+        : myCost(cost), myfDone(false), myCore(-1), myValid( true )
     {
     }
+
+    // construct task from space seperated value line
+    cTask( const std::string& line );
+
+    void setGraphIndex( int i )
+    {
+        myGraphIndex = i;
+    }
+
+    void add( raven::graph::cGraph& g );
+
     int Start(int time, int core)
     {
         myCore = core;
@@ -37,6 +49,12 @@ public:
     {
         return myCore == -1;
     }
+
+    bool dependsOn( int i );
+    
+    private:
+    int myGraphIndex;
+    std::vector<int> vDepend;       // indices of tasks that must be completed prior to this
 };
 
 /// Task dependency
@@ -84,6 +102,9 @@ public:
 
     bool LoadAll(const std::string &path);
 
+    /** Read task graph from space seperated value text file
+     * @param[in] path to file
+    */
     void LoadSSV(const std::string &path);
 
     void LowestTime(int coreCount);
@@ -142,6 +163,8 @@ private:
     raven::graph::cGraph g;     // task dependencies
 
     std::vector<int> myCriticalPath; ///< tasks on critical path, reverse order
+
+    void makeGraph();
 
     /// Calculate critical path
     void CriticalPath();

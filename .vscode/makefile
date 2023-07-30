@@ -26,6 +26,7 @@ OBJ_starter = \
 	$(ODIR)/cProcessor.o \
 	$(ODIR)/cResultsRecord.o \
 	$(ODIR)/tgs.o \
+	$(ODIR)/cTask.o \
 	$(ODIR)/cGraph.o \
 	$(ODIR)/GraphTheory.o \
 	$(ODIR)/cRunWatch.o \

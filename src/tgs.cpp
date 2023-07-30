@@ -369,28 +369,6 @@ bool cTaskGraph::LoadAll(const std::string &path)
     return false;
 }
 
-static std::vector<std::string> ParseSpaceDelimited(
-    const std::string &l)
-{
-    std::vector<std::string> token;
-    std::stringstream sst(l);
-    std::string a;
-    while (std::getline(sst, a, ' '))
-        token.push_back(a);
-
-    token.erase(
-        remove_if(
-            token.begin(),
-            token.end(),
-            [](std::string t)
-            {
-                return (t.empty());
-            }),
-        token.end());
-
-    return token;
-}
-
 void cTaskGraph::LoadSSV(const std::string &path)
 {
     myTask.clear();
@@ -402,26 +380,73 @@ void cTaskGraph::LoadSSV(const std::string &path)
     }
 
     // entry dummy node
-    cTask t(0);
-    myTask.push_back(t);
+    cTask dummy(0);
+    dummy.setGraphIndex(0);
+    myTask.push_back(dummy);
 
+    // read lines from file
     string line;
     while (getline(f, line))
     {
-        auto vToken = ParseSpaceDelimited(line);
-        cTask t(atoi(vToken[1].c_str()));
-        myTask.push_back(t);
-        for (
-            int k = 0;
-            k < atoi(vToken[2].c_str());
-            k++)
+        // construct task from line
+        cTask task(line);
+
+        // store valid constructed task
+        if (task.myValid)
         {
-            // previous task
-            g.add(
-                atoi(vToken[3 + k].c_str()),
-                myTask.size() - 1);
+            task.setGraphIndex(myTask.size());
+            myTask.push_back(task);
         }
     }
+
+    // exit dummy node
+    dummy.setGraphIndex(myTask.size());
+    myTask.push_back(dummy);
+
+    makeGraph();
+}
+
+void cTaskGraph::makeGraph()
+{
+    g.clear();
+
+    // loop over tasks
+    for (
+        int k = 1;
+        k < myTask.size() - 2;
+        k++)
+    {
+        // add link to task from the tasks it depends on to graph
+
+        auto &task = myTask[k];
+        task.add(g);
+
+        // check if task is leaf
+        // ( no tasks depend on it )
+        bool leaf = true;
+
+        // loop over other tasks
+        for (
+            int j = 1;
+            j < myTask.size() - 2;
+            j++)
+            {
+                if( j == k )
+                    continue;
+
+                if( myTask[j].dependsOn( k ))
+                {
+                    // dependant task, so not a leaf
+                    leaf = false;
+                    break;
+                }
+            }
+        // add link from leaf to dummy exit task to grapg
+        if( leaf )
+            g.add( k, myTask.size()-1);
+    }
+
+    std::cout << textGraph();
 }
 
 void cTaskGraph::LoadSTG(const std::string &path)
