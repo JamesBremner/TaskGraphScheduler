@@ -33,7 +33,7 @@ int cProcessor::FindFreeCore()
 
 bool cTaskGraph::IsOnCriticalPath(int task)
 {
-    return (find(
+    return (std::find(
                 myCriticalPath.begin(),
                 myCriticalPath.end(),
                 task) != myCriticalPath.end());
@@ -73,6 +73,17 @@ int cTaskGraph::Choose(std::vector<int> ready)
     //    return best;
 }
 
+int cTaskGraph::find( const std::string& name ) const
+{
+    for( int i = 0; i < myTask.size(); i++ )
+    {
+        if( myTask[i].myName == name )
+            return i;
+    }
+    return -1;
+
+}
+
 void cProcessor::DisplayCoreTimeLines(
     std::vector<cCore> &TL)
 {
@@ -96,7 +107,7 @@ bool cProcessor::WaitForNextTaskCompletion()
     // move clock to completion time
     myTime = ret->first;
 
-    cout << "Task T" << completed << " completed at " << myTime << "\n";
+    //cout << "Task T" << completed << " completed at " << myTime << "\n";
 
     // mark task complete
     int core = myTaskGraph.Done(completed);
@@ -112,7 +123,10 @@ bool cProcessor::WaitForNextTaskCompletion()
 
 void cProcessor::Start(int task, int core)
 {
-    cout << "Task T" << task << " started at " << myTime << " on core " << core << "\n";
+    auto name = myTaskGraph.taskName(task);
+    if( ! name.empty() )
+    cout << "Task " << name 
+        << " started at " << myTime << " on core " << core << "\n";
     myMapCompletions.insert(
         make_pair(
             myTaskGraph.Start(task, core, myTime),
@@ -389,7 +403,7 @@ void cTaskGraph::LoadSSV(const std::string &path)
     while (getline(f, line))
     {
         // construct task from line
-        cTask task(line);
+        cTask task(line,*this);
 
         // store valid constructed task
         if (task.myValid)
@@ -446,7 +460,7 @@ void cTaskGraph::makeGraph()
             g.add( k, myTask.size()-1);
     }
 
-    std::cout << textGraph();
+    //std::cout << textGraph();
 }
 
 void cTaskGraph::LoadSTG(const std::string &path)

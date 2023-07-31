@@ -2,6 +2,7 @@
 #include "GraphTheory.h"
 
 class cProcessor;
+class cTaskGraph;
 
 /// A task
 class cTask
@@ -13,6 +14,8 @@ public:
     int myComplete;
     int myCore; ///< core it runs on
     bool myValid;
+    std::string myName;
+
     cTask()
         : myCost(0), myfDone(false), myCore(-1), myValid(true)
     {
@@ -23,7 +26,9 @@ public:
     }
 
     // construct task from space seperated value line
-    cTask( const std::string& line );
+    cTask( 
+        const std::string& line,
+        const cTaskGraph& taskGraph );
 
     void setGraphIndex( int i )
     {
@@ -51,7 +56,12 @@ public:
     }
 
     bool dependsOn( int i );
-    
+
+    operator==( const cTask& other ) const
+    {
+        return myName == other.myName;
+    }
+
     private:
     int myGraphIndex;
     std::vector<int> vDepend;       // indices of tasks that must be completed prior to this
@@ -156,6 +166,12 @@ public:
     int Choose(std::vector<int> ready);
 
     std::string textGraph();
+
+    std::string taskName( int i ) const
+    {
+        return myTask[i].myName;
+    }
+    int find( const std::string& name ) const;
 
 private:
 

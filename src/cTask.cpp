@@ -22,14 +22,22 @@ static std::vector<std::string> ParseSpaceDelimited(
 
     return token;
 }
-cTask::cTask(const std::string &line)
+cTask::cTask(
+    const std::string &line,
+    const cTaskGraph &taskGraph)
+    : myValid( false )
 {
     auto vToken = ParseSpaceDelimited(line);
     if (vToken.size() < 3)
     {
-        myValid = false;
         return;
     }
+    myName = vToken[0];
+    if( myName.empty())
+        return;
+    if( taskGraph.find(myName) != -1 )
+        return;
+
     myCost = atoi(vToken[1].c_str());
     for (
         int k = 0;
@@ -37,7 +45,12 @@ cTask::cTask(const std::string &line)
         k++)
     {
         // previous task
-        vDepend.push_back(atoi(vToken[3 + k].c_str()));
+        int i = taskGraph.find(vToken[3 + k]);
+        if (i < 0)
+        {
+            return;
+        }
+        vDepend.push_back(i);
     }
     myValid = true;
 }
@@ -46,14 +59,14 @@ void cTask::add(raven::graph::cGraph &g)
 {
     // if task indepedent of any other tasks
     // add link from dummy entry node
-    if( ! vDepend.size() )
-        g.add( 0, myGraphIndex);
+    if (!vDepend.size())
+        g.add(0, myGraphIndex);
 
     // add link from tasks that this task depends on
     for (int dt : vDepend)
         g.add(dt, myGraphIndex);
 }
- bool cTask::dependsOn( int i )
- {
-    return ( std::find(vDepend.begin(),vDepend.end(),i) != vDepend.end() );
- }
+bool cTask::dependsOn(int i)
+{
+    return (std::find(vDepend.begin(), vDepend.end(), i) != vDepend.end());
+}

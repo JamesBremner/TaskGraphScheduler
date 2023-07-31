@@ -1,11 +1,11 @@
-          1        180           1           0
-          2         30           1           1
-          3        240           1           2
-          4        600           1           3
-          5        300           1           4
-          6        120           1           5
-          7         30           1           0
-          8         60           1           7
-          9        240           1           8
-         10        660           1           9
-         
+          rice_wash        180           0
+          rice_season       30           1           rice_wash
+          rice_heat        240           1           rice_season
+          rice_cook        600           1           rice_heat
+          rice_steam       300           1           rice_cook
+          rice_serve       120           1           rice_steam
+          broc_wash         30           0
+          broc_cut          60           1           broc_wash
+          broc_heat        240           1           broc_cut
+          broc_steam       660           1           broc_heat
+          broc_serve         0           1          broc_steam
