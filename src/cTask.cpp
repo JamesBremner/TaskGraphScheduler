@@ -44,7 +44,7 @@ cTask::cTask(
     // loop over tasks this one depends on
     int kToken;
     for (
-        int kToken = 3;
+        kToken = 3;
         kToken < atoi(vToken[2].c_str())+3;
         kToken++)
     {
@@ -56,9 +56,11 @@ cTask::cTask(
         }
         vDepend.push_back(i);
     }
-    if( kToken < vToken.size() )
-    {
 
+    // resources
+    for( ; kToken< vToken.size(); kToken++ )
+    {
+        vResource.push_back( atoi(vToken[kToken].c_str()));
     }
     myValid = true;
 }

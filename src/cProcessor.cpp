@@ -85,7 +85,7 @@ int cProcessor::Run(int firstChoice)
                 break;
             }
             // find tasks that can be started
-            vector<int> ready = myTaskGraph.FindReadyTasks();
+            vector<int> ready = myTaskGraph.FindReadyTasks(myCore);
             if (!ready.size())
             {
                 if (!WaitForNextTaskCompletion())
@@ -109,6 +109,9 @@ int cProcessor::Run(int firstChoice)
             if (!WaitForNextTaskCompletion())
                 break;
     }
+    if( ! myTaskGraph.IsDone() )
+        std::cout << "All tasks could NOT be completed\n";
+        
     return myTime;
 }
 

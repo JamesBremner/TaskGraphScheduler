@@ -189,18 +189,24 @@ bool cTaskGraph::IsDone()
 }
 
 std::vector<int>
-cTaskGraph::FindReadyTasks()
+cTaskGraph::FindReadyTasks(
+    const std::vector<cCore> &vCore)
 {
     vector<int> Ready;
+
+    // check for all tasks complete
     if (IsDone())
         return Ready;
 
+
     for (int ti = 0; ti < myTask.size(); ti++)
     {
-        // cout << "check ready " << vd << "\n";
+        // check for task waiting to start
         if (!myTask[ti].isWaiting())
             continue;
         bool fReady = true;
+
+        // check all tasks it depends are complete
         for (auto ed : g.edgeList())
         {
             if (ed.second == ti)
@@ -209,6 +215,25 @@ cTaskGraph::FindReadyTasks()
                 {
                     fReady = false;
                     break;
+                }
+            }
+        }
+        if (fReady)
+        {
+            // check for reuired resource is free
+            auto& vResource = myTask[ti].resource();
+            if (vResource.size())
+            {
+                fReady = false;
+                for (auto &c : myTask[ti].resource())
+                {
+                    if( c >= vCore.size() )
+                        continue;
+                    if (vCore[c].IsFree())
+                    {
+                        fReady = true;
+                        break;
+                    }
                 }
             }
         }

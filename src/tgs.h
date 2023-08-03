@@ -4,6 +4,7 @@
 
 class cProcessor;
 class cTaskGraph;
+class cCore;
 
 /// A task
 class cTask
@@ -67,6 +68,10 @@ public:
     int core() const
     {
         return myCore;
+    }
+    const std::vector<int>& resource() const
+    {
+        return vResource;
     }
 
     operator==(const cTask &other) const
@@ -133,7 +138,8 @@ public:
      * @return std::vector<int> task indices that can start
      */
     std::vector<int>
-    FindReadyTasks();
+    FindReadyTasks(
+        const std::vector<cCore>& vCore );
 
     /** Task has completed
         @param[in] task
@@ -292,7 +298,11 @@ private:
 
     int FindFreeCore();
     void Start(int task, int core);
+
+    /// @brief Advance to completion of next task to complete
+    /// @return false if no tasks in process
     bool WaitForNextTaskCompletion();
+    
     void DisplayBest(
         int best,
         std::vector<cCore> &bestTimeLines);
