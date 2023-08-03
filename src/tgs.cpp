@@ -73,15 +73,14 @@ int cTaskGraph::Choose(std::vector<int> ready)
     //    return best;
 }
 
-int cTaskGraph::find( const std::string& name ) const
+int cTaskGraph::find(const std::string &name) const
 {
-    for( int i = 0; i < myTask.size(); i++ )
+    for (int i = 0; i < myTask.size(); i++)
     {
-        if( myTask[i].myName == name )
+        if (myTask[i].myName == name)
             return i;
     }
     return -1;
-
 }
 
 void cProcessor::DisplayCoreTimeLines(
@@ -107,7 +106,7 @@ bool cProcessor::WaitForNextTaskCompletion()
     // move clock to completion time
     myTime = ret->first;
 
-    //cout << "Task T" << completed << " completed at " << myTime << "\n";
+    // cout << "Task T" << completed << " completed at " << myTime << "\n";
 
     // mark task complete
     int core = myTaskGraph.Done(completed);
@@ -124,9 +123,9 @@ bool cProcessor::WaitForNextTaskCompletion()
 void cProcessor::Start(int task, int core)
 {
     auto name = myTaskGraph.taskName(task);
-    if( ! name.empty() )
-    cout << "Task " << name 
-        << " started at " << myTime << " on core " << core << "\n";
+    if (!name.empty())
+        cout << "Task " << name
+             << " started at " << myTime << " on core " << core << "\n";
     myMapCompletions.insert(
         make_pair(
             myTaskGraph.Start(task, core, myTime),
@@ -181,44 +180,12 @@ bool cTaskGraph::IsDone()
 {
     for (auto t : myTask)
     {
-        if (!t.myfDone)
+        if (!t.isDone())
         {
             return false;
         }
     }
     return true;
-}
-
-int cTaskGraph::FindNextTask()
-{
-    if (IsDone())
-        return -1;
-
-    for (int ti = 0; ti < myTask.size(); ti++)
-    {
-        // cout << "check ready " << vd << "\n";
-        if (myTask[ti].myCore != -1)
-            continue;
-        bool fReady = true;
-        for (auto ed : g.edgeList())
-        {
-            if (ed.second == ti)
-            {
-                if (!myTask[ed.first].myfDone)
-                {
-                    fReady = false;
-                    break;
-                }
-            }
-        }
-        if (fReady)
-        {
-            // cout << ti << " is ready\n";
-            return ti;
-        }
-    }
-    // cout << "no task ready\n";
-    return -2;
 }
 
 std::vector<int>
@@ -227,18 +194,18 @@ cTaskGraph::FindReadyTasks()
     vector<int> Ready;
     if (IsDone())
         return Ready;
-    myTask[0].myfDone = true;
-    for (int ti = 1; ti < myTask.size(); ti++)
+
+    for (int ti = 0; ti < myTask.size(); ti++)
     {
         // cout << "check ready " << vd << "\n";
-        if (!myTask[ti].IsWaiting())
+        if (!myTask[ti].isWaiting())
             continue;
         bool fReady = true;
         for (auto ed : g.edgeList())
         {
             if (ed.second == ti)
             {
-                if (!myTask[ed.first].myfDone)
+                if (!myTask[ed.first].isDone())
                 {
                     fReady = false;
                     break;
@@ -252,6 +219,20 @@ cTaskGraph::FindReadyTasks()
         }
     }
     return Ready;
+}
+
+int cTaskGraph::Done(int task)
+{
+    // mark task complete
+    myTask[task].done();
+
+    // if task was on critical path
+    // recaclulate path with zero cost for completed tasks
+    if (IsOnCriticalPath(task))
+        CriticalPath();
+
+    // return the core freed
+    return myTask[task].core();
 }
 
 void cTaskGraph::CriticalPath()
@@ -285,7 +266,7 @@ void cTaskGraph::CriticalPath()
         // cost of running the task
         int t = ed.second;
         int c;
-        if (myTask[t].myfDone)
+        if (myTask[t].isDone())
             c = 0; /// task is complete, so no more cost
         else
             c = myTask[t].myCost;
@@ -395,7 +376,7 @@ void cTaskGraph::LoadSSV(const std::string &path)
 
     // entry dummy node
     cTask dummy(0);
-    dummy.setGraphIndex(0);
+    dummy.graphIndex(0);
     myTask.push_back(dummy);
 
     // read lines from file
@@ -403,18 +384,18 @@ void cTaskGraph::LoadSSV(const std::string &path)
     while (getline(f, line))
     {
         // construct task from line
-        cTask task(line,*this);
+        cTask task(line, *this);
 
         // store valid constructed task
         if (task.myValid)
         {
-            task.setGraphIndex(myTask.size());
+            task.graphIndex(myTask.size());
             myTask.push_back(task);
         }
     }
 
     // exit dummy node
-    dummy.setGraphIndex(myTask.size());
+    dummy.graphIndex(myTask.size());
     myTask.push_back(dummy);
 
     makeGraph();
@@ -444,23 +425,23 @@ void cTaskGraph::makeGraph()
             int j = 1;
             j < myTask.size() - 2;
             j++)
-            {
-                if( j == k )
-                    continue;
+        {
+            if (j == k)
+                continue;
 
-                if( myTask[j].dependsOn( k ))
-                {
-                    // dependant task, so not a leaf
-                    leaf = false;
-                    break;
-                }
+            if (myTask[j].dependsOn(k))
+            {
+                // dependant task, so not a leaf
+                leaf = false;
+                break;
             }
+        }
         // add link from leaf to dummy exit task to grapg
-        if( leaf )
-            g.add( k, myTask.size()-1);
+        if (leaf)
+            g.add(k, myTask.size() - 1);
     }
 
-    //std::cout << textGraph();
+    // std::cout << textGraph();
 }
 
 void cTaskGraph::LoadSTG(const std::string &path)

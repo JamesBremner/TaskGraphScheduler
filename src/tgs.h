@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include "GraphTheory.h"
 
 class cProcessor;
@@ -9,10 +10,7 @@ class cTask
 {
 public:
     int myCost;
-    bool myfDone;
     int myStart;
-    int myComplete;
-    int myCore; ///< core it runs on
     bool myValid;
     std::string myName;
 
@@ -21,21 +19,25 @@ public:
     {
     }
     cTask(int cost)
-        : myCost(cost), myfDone(false), myCore(-1), myValid( true )
+        : myCost(cost), myfDone(false), myCore(-1), myValid(true)
     {
     }
 
     // construct task from space seperated value line
-    cTask( 
-        const std::string& line,
-        const cTaskGraph& taskGraph );
+    cTask(
+        const std::string &line,
+        const cTaskGraph &taskGraph);
 
-    void setGraphIndex( int i )
+    void graphIndex(int i)
     {
         myGraphIndex = i;
     }
+    void done()
+    {
+        myfDone = true;
+    }
 
-    void add( raven::graph::cGraph& g );
+    void add(raven::graph::cGraph &g);
 
     int Start(int time, int core)
     {
@@ -50,32 +52,35 @@ public:
         myCore = -1;
     }
     /// true if waiting to be assigned to a core
-    bool IsWaiting() const
+    bool isWaiting() const
     {
         return myCore == -1;
     }
 
-    bool dependsOn( int i );
+    bool isDone() const
+    {
+        return myfDone;
+    }
 
-    operator==( const cTask& other ) const
+    bool dependsOn(int i) const;
+
+    int core() const
+    {
+        return myCore;
+    }
+
+    operator==(const cTask &other) const
     {
         return myName == other.myName;
     }
 
-    private:
-    int myGraphIndex;
-    std::vector<int> vDepend;       // indices of tasks that must be completed prior to this
-};
-
-/// Task dependency
-class cEdge
-{
-public:
-    int myCost;
-    cEdge()
-        : myCost(0)
-    {
-    }
+private:
+    int myGraphIndex;           // index of this task
+    std::vector<int> vDepend;   // indices of tasks that must be completed prior to this
+    std::vector<int> vResource; // core indices where task can run, empty if all
+    int myCore;                 ///< core it is running on
+    int myComplete;             ///< time when task will be completed
+    bool myfDone;
 };
 
 /// Tasks, with execution times and dependencies
@@ -83,7 +88,6 @@ class cTaskGraph
 {
 
 public:
-    std::string myLoadedPath;
     bool flagCritPath;
     int myLowestTime;
 
@@ -114,7 +118,7 @@ public:
 
     /** Read task graph from space seperated value text file
      * @param[in] path to file
-    */
+     */
     void LoadSSV(const std::string &path);
 
     void LowestTime(int coreCount);
@@ -124,11 +128,10 @@ public:
 
     std::string Display();
 
-    /** Find a task that can start
-        @return -1 all tasks complete, -2 no task ready to start
-    */
-    int FindNextTask();
-
+    /** Find tasks that can start
+     *
+     * @return std::vector<int> task indices that can start
+     */
     std::vector<int>
     FindReadyTasks();
 
@@ -136,19 +139,7 @@ public:
         @param[in] task
         @return core which is now free
     */
-    int Done(int task)
-    {
-        // mark task complete
-        myTask[task].myfDone = true;
-
-        // if task was on critical path
-        // recaclulate path with zreo cost for completed tasks
-        if (IsOnCriticalPath(task))
-            CriticalPath();
-
-        // return the core freed
-        return myTask[task].myCore;
-    }
+    int Done(int task);
 
     /** Start a task
         @param[in] task
@@ -167,18 +158,24 @@ public:
 
     std::string textGraph();
 
-    std::string taskName( int i ) const
+    std::string taskName(int i) const
     {
         return myTask[i].myName;
     }
-    int find( const std::string& name ) const;
+    int find(const std::string &name) const;
+
+    std::string loadedPath() const
+    {
+        return myLoadedPath;
+    }
 
 private:
-
-    std::vector<cTask> myTask;  // the tasks to be completed
-    raven::graph::cGraph g;     // task dependencies
+    std::vector<cTask> myTask; // the tasks to be completed
+    raven::graph::cGraph g;    // task dependencies
 
     std::vector<int> myCriticalPath; ///< tasks on critical path, reverse order
+
+    std::string myLoadedPath; // file read
 
     void makeGraph();
 
@@ -272,9 +269,9 @@ public:
     {
         return myCore;
     }
-    std::string LoadedPath()
+    std::string LoadedPath() const
     {
-        return myTaskGraph.myLoadedPath;
+        return myTaskGraph.loadedPath();
     }
     int BestTime() const
     {

@@ -38,19 +38,27 @@ cTask::cTask(
     if( taskGraph.find(myName) != -1 )
         return;
 
+
     myCost = atoi(vToken[1].c_str());
+
+    // loop over tasks this one depends on
+    int kToken;
     for (
-        int k = 0;
-        k < atoi(vToken[2].c_str());
-        k++)
+        int kToken = 3;
+        kToken < atoi(vToken[2].c_str())+3;
+        kToken++)
     {
         // previous task
-        int i = taskGraph.find(vToken[3 + k]);
+        int i = taskGraph.find(vToken[kToken]);
         if (i < 0)
         {
             return;
         }
         vDepend.push_back(i);
+    }
+    if( kToken < vToken.size() )
+    {
+
     }
     myValid = true;
 }
@@ -66,7 +74,7 @@ void cTask::add(raven::graph::cGraph &g)
     for (int dt : vDepend)
         g.add(dt, myGraphIndex);
 }
-bool cTask::dependsOn(int i)
+bool cTask::dependsOn(int i) const
 {
     return (std::find(vDepend.begin(), vDepend.end(), i) != vDepend.end());
 }

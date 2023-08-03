@@ -34,7 +34,7 @@ OBJ_starter = \
 
 ### COMPILE
 
-$(ODIR)/%.o: %.cpp  
+$(ODIR)/%.o: %.cpp tgs.h
 	g++  $(CCflags) \
 	-c -o $@ $< $(INCS)
 
